@@ -18,6 +18,9 @@ document.getElementById("login-form").addEventListener("submit", async function(
 
   const email = document.getElementById("usuario").value.trim();
   const senha = document.getElementById("senha").value.trim();
+  const erroLogin = document.getElementById("login-error");
+
+  erroLogin.classList.add("hide"); // Esconde erro antes de tentar login
 
   const { data, error } = await supabase.auth.signInWithPassword({
     email: email,
@@ -25,13 +28,15 @@ document.getElementById("login-form").addEventListener("submit", async function(
   });
 
   if (error) {
-    alert("Login ou senha incorretos! " + error.message);
+    erroLogin.textContent = "Login ou senha inválidos";
+    erroLogin.classList.remove("hide");
     return;
   }
 
   document.getElementById("login-screen").classList.remove("active");
   document.getElementById("main-screen").classList.add("active");
 });
+
 
 
 // ==============================
