@@ -1,16 +1,17 @@
-// Instale o cliente Supabase (não precisa instalar, só importe)
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
-// Substitua com suas chaves do Supabase
-const supabaseUrl = 'https://cbzcucovyuuxqoyesffb.supabase.co';  // ex: https://xyz.supabase.co
-const supabaseKey = 'sb_publishable_drt9tBqp5TaSpXnn3y5eFw_D5cC1cA7';      // a chave longa
+// === SUBSTITUA AQUI COM SUA CHAVE PUBLISHABLE COMPLETA ===
+const supabaseUrl = 'https://cbzcucovyuuxqoyesffb.supabase.co';
+const supabaseKey = 'sb_publishable_drt9tBqp5TaSpXnn3y5eFw_D5cC1cA7'; // COLE A CHAVE INTEIRA AQUI (copie do Supabase > Settings > API > Publishable key > default)
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Login (substitua o mock anterior)
+console.log("Script.js carregou com sucesso! Supabase client criado.");
+
+// Login
 document.getElementById("login-form").addEventListener("submit", async function(e) {
   e.preventDefault();
-
-  const email = document.getElementById("usuario").value.trim();  // Use email como login
+  const email = document.getElementById("usuario").value.trim();
   const senha = document.getElementById("senha").value.trim();
 
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -23,35 +24,45 @@ document.getElementById("login-form").addEventListener("submit", async function(
     return;
   }
 
-  document.getElementById("nome-usuario").textContent = email.split('@')[0];  // Mostra parte do email como nome
+  document.getElementById("nome-usuario").textContent = email.split('@')[0];
   document.getElementById("login-screen").classList.remove("active");
   document.getElementById("main-screen").classList.add("active");
 });
 
-// Consulta
+// Função de consulta
 async function consultar() {
+  console.log("Função consultar() foi chamada!");
+
+  let valor = document.getElementById("valor").value.trim().toUpperCase();
   const tipo = document.getElementById("tipo-pesquisa").value;
-  const valor = document.getElementById("valor").value.trim().toUpperCase();
+  const coluna = tipo === 'placa' ? 'placa' : 'ordem';
 
   if (!valor) {
     alert("Digite um valor para consultar!");
     return;
   }
 
-  const coluna = tipo === 'placa' ? 'placa' : 'ordem';
+  // Ajustes na entrada
+  if (tipo === 'placa') {
+    valor = valor.replace(/-/g, '');   // Remove hífen
+    valor = valor.slice(0, 8);         // Limita a 8 caracteres
+  } else if (tipo === 'ordem') {
+    valor = valor.replace(/\D/g, '');  // Só números
+    valor = valor.slice(0, 5);         // Limita a 5 caracteres
+  }
 
   const { data, error } = await supabase
     .from('veiculos')
     .select('*')
-    .ilike(coluna, valor)   // ← mudou de eq para ilike
+    .ilike(coluna, valor)
     .single();
 
   console.log("Buscando por:", coluna, "valor:", valor);
   console.log("Resultado:", data);
   console.log("Erro:", error);
-  
+
   if (error || !data) {
-    alert("Não encontrado ou erro: " + (error ? error.message : ''));
+    alert("Não encontrado ou erro: " + (error ? error.message : 'Nenhum registro encontrado'));
     return;
   }
 
@@ -76,3 +87,7 @@ async function consultar() {
 
   document.getElementById("resultado").classList.remove("hide");
 }
+
+// Listener do botão (sem onclick no HTML)
+document.getElementById("btn-consultar").addEventListener("click", consultar);
+console.log("Listener adicionado ao botão Consultar.");
