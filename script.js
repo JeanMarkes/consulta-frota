@@ -18,7 +18,7 @@ document.getElementById("login-form").addEventListener("submit", async function(
     email: email,
     password: senha,
   });
-
+  
   if (error) {
     alert("Login ou senha incorretos! " + error.message);
     return;
@@ -99,3 +99,30 @@ async function consultar() {
 // Listener do botão (sem onclick no HTML)
 document.getElementById("btn-consultar").addEventListener("click", consultar);
 console.log("Listener adicionado ao botão Consultar.");
+
+// Menu hambúrguer
+const toggle = document.getElementById('sidebar-toggle');
+const menu = document.getElementById('sidebar-menu');
+
+toggle.addEventListener('click', () => {
+  menu.classList.toggle('active');
+});
+
+// Fechar menu ao clicar fora (opcional, mas bom UX)
+document.addEventListener('click', (e) => {
+  if (!toggle.contains(e.target) && !menu.contains(e.target)) {
+    menu.classList.remove('active');
+  }
+});
+
+// Logout simples (volta para tela de login)
+document.getElementById('logout-link').addEventListener('click', async (e) => {
+  e.preventDefault();
+  await supabase.auth.signOut();
+  document.getElementById("main-screen").classList.remove("active");
+  document.getElementById("login-screen").classList.add("active");
+  menu.classList.remove('active'); // fecha menu
+  // Limpa campos se quiser
+  document.getElementById("valor").value = '';
+  document.getElementById("resultado").classList.add("hide");
+});
