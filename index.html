@@ -33,7 +33,7 @@
     <span class="hamburger">☰</span>
   </div>
 
-  <!-- Menu que desliza ao clicar -->
+  <!-- Menu que abre ao clicar -->
   <div class="sidebar-menu" id="sidebar-menu">
     <ul>
       <li><a href="#" onclick="alert('Funcionalidade de alterar senha em desenvolvimento')">Alterar senha</a></li>
@@ -54,8 +54,15 @@
       <button id="btn-consultar">Consultar</button>
     </div>
 
+    <!-- Nova seção: Lista de resultados resumidos -->
+    <div id="lista-resultados" class="lista-resultados hide">
+      <h3>Resultados Encontrados</h3>
+      <ul id="lista-itens"></ul> <!-- Aqui vai a lista clicável -->
+    </div>
+
+    <!-- Detalhes completos (tabela) -->
     <div id="resultado" class="resultado hide">
-      <h3>Resultado da Consulta</h3>
+      <h3>Detalhes do Veículo</h3>
       <table>
         <tr><th>Nº Ordem:</th><td id="res-ordem">-</td></tr>
         <tr><th>Placa:</th><td id="res-placa">-</td></tr>
