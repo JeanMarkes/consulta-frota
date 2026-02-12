@@ -31,7 +31,6 @@ document.getElementById("login-form").addEventListener("submit", async function(
 async function consultar() {
   let valor = document.getElementById("valor").value.trim().toUpperCase();
   const tipo = document.getElementById("tipo-pesquisa").value;
-  const coluna = tipo === 'placa' ? 'placa' : 'ordem';
 
   if (!valor) {
     alert("Digite um valor para consultar!");
@@ -39,21 +38,90 @@ async function consultar() {
   }
 
   if (tipo === 'placa') {
-    valor = valor.replace(/-/g, '');
-    valor = valor.slice(0, 8);
-  } else if (tipo === 'ordem') {
-    valor = valor.slice(0, 5);
-  }
 
-  const { data, error } = await supabase
-    .from('veiculos')
-    .select('*')
-    .eq(coluna, valor);
+    valor = valor.replace(/-/g, '').slice(0, 7);
 
-  if (error) {
-    alert("Erro na consulta: " + error.message);
+    const mapaNumeroParaLetra = {
+      "0": "A",
+      "1": "B",
+      "2": "C",
+      "3": "D",
+      "4": "E",
+      "5": "F",
+      "6": "G",
+      "7": "H",
+      "8": "I",
+      "9": "J"
+    };
+
+    const mapaLetraParaNumero = {
+      "A": "0",
+      "B": "1",
+      "C": "2",
+      "D": "3",
+      "E": "4",
+      "F": "5",
+      "G": "6",
+      "H": "7",
+      "I": "8",
+      "J": "9"
+    };
+
+    let placaAlternativa = valor;
+
+    // Se for formato antigo (5º caractere número)
+    if (!isNaN(valor[4])) {
+      const letraConvertida = mapaNumeroParaLetra[valor[4]];
+      if (letraConvertida) {
+        placaAlternativa =
+          valor.substring(0, 4) +
+          letraConvertida +
+          valor.substring(5);
+      }
+    }
+    // Se for Mercosul (5º caractere letra A-J)
+    else {
+      const numeroConvertido = mapaLetraParaNumero[valor[4]];
+      if (numeroConvertido) {
+        placaAlternativa =
+          valor.substring(0, 4) +
+          numeroConvertido +
+          valor.substring(5);
+      }
+    }
+
+    const { data, error } = await supabase
+      .from('veiculos')
+      .select('*')
+      .in('placa', [valor, placaAlternativa]);
+
+    if (error) {
+      alert("Erro na consulta: " + error.message);
+      return;
+    }
+
+    exibirResultados(data);
     return;
   }
+
+  // Consulta por ordem (mantém igual)
+  if (tipo === 'ordem') {
+    valor = valor.slice(0, 5);
+
+    const { data, error } = await supabase
+      .from('veiculos')
+      .select('*')
+      .eq('ordem', valor);
+
+    if (error) {
+      alert("Erro na consulta: " + error.message);
+      return;
+    }
+
+    exibirResultados(data);
+  }
+}
+
 
   // Esconde tudo
   document.getElementById("lista-resultados").classList.add("hide");
