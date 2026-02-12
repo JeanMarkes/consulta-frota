@@ -1,11 +1,11 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
-// Chaves do Supabase (cole a publishable completa aqui)
+// Chaves Supabase
 const supabaseUrl = 'https://cbzcucovyuuxqoyesffb.supabase.co';
 const supabaseKey = 'sb_publishable_drt9tBqp5TaSpXnn3y5eFw_D5cC1cA7'; // COLE A CHAVE INTEIRA AQUI!
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-console.log("Script.js carregou com sucesso! Supabase client criado.");
+console.log("Script.js carregou com sucesso!");
 
 // Login
 document.getElementById("login-form").addEventListener("submit", async function(e) {
@@ -27,10 +27,8 @@ document.getElementById("login-form").addEventListener("submit", async function(
   document.getElementById("main-screen").classList.add("active");
 });
 
-// Consulta (agora busca múltiplos e mostra lista resumida)
+// Consulta múltipla
 async function consultar() {
-  console.log("Função consultar() foi chamada!");
-
   let valor = document.getElementById("valor").value.trim().toUpperCase();
   const tipo = document.getElementById("tipo-pesquisa").value;
   const coluna = tipo === 'placa' ? 'placa' : 'ordem';
@@ -40,7 +38,6 @@ async function consultar() {
     return;
   }
 
-  // Ajustes na entrada (igual antes)
   if (tipo === 'placa') {
     valor = valor.replace(/-/g, '');
     valor = valor.slice(0, 8);
@@ -48,23 +45,17 @@ async function consultar() {
     valor = valor.slice(0, 5);
   }
 
-  console.log("Valor tratado para busca:", valor);
-
   const { data, error } = await supabase
     .from('veiculos')
     .select('*')
     .eq(coluna, valor);
-
-  console.log("Buscando por:", coluna, "valor:", valor);
-  console.log("Resultado:", data);
-  console.log("Erro:", error);
 
   if (error) {
     alert("Erro na consulta: " + error.message);
     return;
   }
 
-  // Esconde tudo antes
+  // Esconde tudo
   document.getElementById("lista-resultados").classList.add("hide");
   document.getElementById("resultado").classList.add("hide");
   document.getElementById("no-result").classList.add("hide");
@@ -75,9 +66,9 @@ async function consultar() {
   }
 
   const listaItens = document.getElementById("lista-itens");
-  listaItens.innerHTML = '';  // Limpa
+  listaItens.innerHTML = '';
 
-  data.forEach((veiculo) => {
+  data.forEach(veiculo => {
     const card = document.createElement("div");
     card.className = "resultado-card";
     card.innerHTML = `
@@ -101,31 +92,30 @@ async function consultar() {
   }
 }
 
-// Função para preencher detalhes ao clicar em um item
-function preencherDetalhes(data) {
-  document.getElementById("res-ordem").textContent = data.ordem || '-';
-  document.getElementById("res-placa").textContent = data.placa || '-';
-  document.getElementById("res-chassi").textContent = data.chassi || '-';
-  document.getElementById("res-renavam").textContent = data.renavam || '-';
-  document.getElementById("res-unidade").textContent = data.unidade || '-';
-  document.getElementById("res-fab").textContent = data.fab || '-';
-  document.getElementById("res-mod").textContent = data.mod || '-';
-  document.getElementById("res-marca").textContent = data.marca || '-';
-  document.getElementById("res-modelo").textContent = data.modelo || '-';
-  document.getElementById("res-tipo").textContent = data.tipo || '-';
-  document.getElementById("res-carroceria").textContent = data.carroceria || '-';
-  document.getElementById("res-cor").textContent = data.cor || '-';
-  document.getElementById("res-municipio").textContent = data.municipio || '-';
-  document.getElementById("res-cnpj").textContent = data.cnpj || '-';
-  document.getElementById("res-empresa").textContent = data.empresa || '-';
-  document.getElementById("res-placa-antiga").textContent = data.placa_antiga || '-';
-  document.getElementById("res-crlv").textContent = data.crlv_atual || '-';
+// Preenche detalhes
+function preencherDetalhes(veiculo) {
+  document.getElementById("res-ordem").textContent = veiculo.ordem || '-';
+  document.getElementById("res-placa").textContent = veiculo.placa || '-';
+  document.getElementById("res-chassi").textContent = veiculo.chassi || '-';
+  document.getElementById("res-renavam").textContent = veiculo.renavam || '-';
+  document.getElementById("res-unidade").textContent = veiculo.unidade || '-';
+  document.getElementById("res-fab").textContent = veiculo.fab || '-';
+  document.getElementById("res-mod").textContent = veiculo.mod || '-';
+  document.getElementById("res-marca").textContent = veiculo.marca || '-';
+  document.getElementById("res-modelo").textContent = veiculo.modelo || '-';
+  document.getElementById("res-tipo").textContent = veiculo.tipo || '-';
+  document.getElementById("res-carroceria").textContent = veiculo.carroceria || '-';
+  document.getElementById("res-cor").textContent = veiculo.cor || '-';
+  document.getElementById("res-municipio").textContent = veiculo.municipio || '-';
+  document.getElementById("res-cnpj").textContent = veiculo.cnpj || '-';
+  document.getElementById("res-empresa").textContent = veiculo.empresa || '-';
+  document.getElementById("res-placa-antiga").textContent = veiculo.placa_antiga || '-';
+  document.getElementById("res-crlv").textContent = veiculo.crlv_atual || '-';
 
   document.getElementById("resultado").classList.remove("hide");
 }
 
 document.getElementById("btn-consultar").addEventListener("click", consultar);
-console.log("Listener adicionado ao botão Consultar.");
 
 // Menu hambúrguer
 const toggle = document.getElementById('sidebar-toggle');
@@ -135,14 +125,12 @@ toggle.addEventListener('click', () => {
   menu.classList.toggle('active');
 });
 
-// Fechar ao clicar fora
 document.addEventListener('click', (e) => {
   if (!toggle.contains(e.target) && !menu.contains(e.target)) {
     menu.classList.remove('active');
   }
 });
 
-// Logout
 document.getElementById('logout-link').addEventListener('click', async (e) => {
   e.preventDefault();
   await supabase.auth.signOut();
@@ -152,4 +140,5 @@ document.getElementById('logout-link').addEventListener('click', async (e) => {
   document.getElementById("valor").value = '';
   document.getElementById("resultado").classList.add("hide");
   document.getElementById("lista-resultados").classList.add("hide");
+  document.getElementById("no-result").classList.add("hide");
 });
