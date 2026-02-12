@@ -2,7 +2,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 // Chaves do Supabase (cole a publishable completa aqui)
 const supabaseUrl = 'https://cbzcucovyuuxqoyesffb.supabase.co';
-const supabaseKey = 'sb_publishable_drt9tBqp5TaSpXnn3y5eFw_D5cC1cA7'; // ← COLE A CHAVE INTEIRA AQUI!
+const supabaseKey = 'sb_publishable_drt9tBqp5TaSpXnn3y5eFw_D5cC1cA7'; // COLE A CHAVE INTEIRA AQUI!
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 console.log("Script.js carregou com sucesso! Supabase client criado.");
@@ -22,12 +22,12 @@ document.getElementById("login-form").addEventListener("submit", async function(
     alert("Login ou senha incorretos! " + error.message);
     return;
   }
-  
+
   document.getElementById("login-screen").classList.remove("active");
   document.getElementById("main-screen").classList.add("active");
 });
 
-// Consulta
+// Consulta (agora busca múltiplos e mostra lista resumida)
 async function consultar() {
   console.log("Função consultar() foi chamada!");
   let valor = document.getElementById("valor").value.trim().toUpperCase();
@@ -39,11 +39,12 @@ async function consultar() {
     return;
   }
 
+  // Ajustes na entrada
   if (tipo === 'placa') {
     valor = valor.replace(/-/g, '');
     valor = valor.slice(0, 8);
   } else if (tipo === 'ordem') {
-    valor = valor.slice(0, 5); // Limite de 5 caracteres (ajuste se precisar de mais)
+    valor = valor.slice(0, 5);
   }
 
   console.log("Valor tratado para busca:", valor);
@@ -51,8 +52,7 @@ async function consultar() {
   const { data, error } = await supabase
     .from('veiculos')
     .select('*')
-    .eq(coluna, valor)
-    .maybeSingle();
+    .eq(coluna, valor);  // Sem .maybeSingle() — busca TODOS os matches
 
   console.log("Buscando por:", coluna, "valor:", valor);
   console.log("Resultado:", data);
@@ -63,11 +63,30 @@ async function consultar() {
     return;
   }
 
-  if (!data) {
+  if (data.length === 0) {
     alert("Veículo não encontrado com o valor informado.");
+    document.getElementById("lista-resultados").classList.add("hide");
+    document.getElementById("resultado").classList.add("hide");
     return;
   }
 
+  // Mostra lista de resultados resumidos
+  const listaItens = document.getElementById("lista-itens");
+  listaItens.innerHTML = '';  // Limpa lista anterior
+  data.forEach((veiculo, index) => {
+    const li = document.createElement("li");
+    li.textContent = `Nº Ordem: ${veiculo.ordem} - Unidade: ${veiculo.unidade} - Placa: ${veiculo.placa}`;
+    li.style.cursor = 'pointer';
+    li.addEventListener('click', () => preencherDetalhes(veiculo));  // Clique para detalhes
+    listaItens.appendChild(li);
+  });
+
+  document.getElementById("lista-resultados").classList.remove("hide");
+  document.getElementById("resultado").classList.add("hide");  // Esconde detalhes até clicar
+}
+
+// Função para preencher detalhes ao clicar em um item
+function preencherDetalhes(data) {
   document.getElementById("res-ordem").textContent = data.ordem || '-';
   document.getElementById("res-placa").textContent = data.placa || '-';
   document.getElementById("res-chassi").textContent = data.chassi || '-';
@@ -116,4 +135,5 @@ document.getElementById('logout-link').addEventListener('click', async (e) => {
   menu.classList.remove('active');
   document.getElementById("valor").value = '';
   document.getElementById("resultado").classList.add("hide");
+  document.getElementById("lista-resultados").classList.add("hide");
 });
