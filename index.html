@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
 <!-- Tela de Login -->
 <div id="login-screen" class="screen active">
   <div class="login-box">
@@ -14,7 +15,7 @@
     <form id="login-form">
       <div class="form-group">
         <label for="usuario">Login:</label>
-        <input type="text" id="usuario" required placeholder="Digite seu login">
+        <input type="text" id="usuario" required placeholder="Digite seu login (email)">
       </div>
       <div class="form-group">
         <label for="senha">Senha:</label>
@@ -24,6 +25,7 @@
     </form>
   </div>
 </div>
+
 <!-- Tela principal (após login) -->
 <div id="main-screen" class="screen">
   <!-- Sidebar -->
@@ -33,20 +35,22 @@
     </div>
     <ul class="menu">
       <li><a href="#" onclick="alert('Funcionalidade de alterar senha em desenvolvimento')">Alterar senha</a></li>
-      <!-- Pode adicionar mais opções depois -->
     </ul>
   </div>
+
   <!-- Conteúdo principal -->
   <div class="main-content">
     <h1>Consulta de Veículos</h1>
+
     <div class="search-box">
       <select id="tipo-pesquisa">
         <option value="placa">Placa</option>
         <option value="ordem">Número de Ordem</option>
       </select>
       <input type="text" id="valor" placeholder="Digite o valor..." />
-      <button id="btn-consultar">Consultar</button>  <!-- Removi onclick, vamos usar addEventListener no JS -->
+      <button id="btn-consultar">Consultar</button>
     </div>
+
     <div id="resultado" class="resultado hide">
       <h3>Resultado da Consulta</h3>
       <table>
@@ -71,6 +75,7 @@
     </div>
   </div>
 </div>
-<script type="module" src="script.js"></script>  <!-- Só um aqui, no final do body -->
+
+<script type="module" src="script.js"></script>
 </body>
 </html>
