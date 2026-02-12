@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Consulta Frota Coordenadas</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Tela de Login -->
+<div id="login-screen" class="screen active">
+  <div class="login-box">
+    <h2>Sistema Consulta Frota Coordenadas</h2>
+    <form id="login-form">
+      <div class="form-group">
+        <label for="usuario">Login:</label>
+        <input type="text" id="usuario" required placeholder="Digite seu login">
+      </div>
+      <div class="form-group">
+        <label for="senha">Senha:</label>
+        <input type="password" id="senha" required placeholder="Digite sua senha">
+      </div>
+      <button type="submit">Entrar</button>
+    </form>
+  </div>
+</div>
+
+<!-- Tela principal (após login) -->
+<div id="main-screen" class="screen">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="user-info">
+      <span id="nome-usuario">Usuário</span>
+    </div>
+    <ul class="menu">
+      <li><a href="#" onclick="alert('Funcionalidade de alterar senha em desenvolvimento')">Alterar senha</a></li>
+      <!-- Pode adicionar mais opções depois -->
+    </ul>
+  </div>
+
+  <!-- Conteúdo principal -->
+  <div class="main-content">
+    <h1>Consulta de Veículos</h1>
+
+    <div class="search-box">
+      <select id="tipo-pesquisa">
+        <option value="placa">Placa</option>
+        <option value="ordem">Número de Ordem</option>
+      </select>
+      <input type="text" id="valor" placeholder="Digite o valor..." />
+      <button onclick="consultar()">Consultar</button>
+    </div>
+
+    <div id="resultado" class="resultado hide">
+      <h3>Resultado da Consulta</h3>
+      <table>
+        <tr><th>Nº Ordem:</th><td id="res-ordem">-</td></tr>
+        <tr><th>Placa:</th><td id="res-placa">-</td></tr>
+        <tr><th>Chassi:</th><td id="res-chassi">-</td></tr>
+        <tr><th>Renavam:</th><td id="res-renavam">-</td></tr>
+        <tr><th>Unidade:</th><td id="res-unidade">-</td></tr>
+        <tr><th>Fab:</th><td id="res-fab">-</td></tr>
+        <tr><th>Mod:</th><td id="res-mod">-</td></tr>
+        <tr><th>Marca:</th><td id="res-marca">-</td></tr>
+        <tr><th>Modelo:</th><td id="res-modelo">-</td></tr>
+        <tr><th>Tipo:</th><td id="res-tipo">-</td></tr>
+        <tr><th>Carroceria:</th><td id="res-carroceria">-</td></tr>
+        <tr><th>Cor:</th><td id="res-cor">-</td></tr>
+        <tr><th>Município:</th><td id="res-municipio">-</td></tr>
+        <tr><th>CNPJ:</th><td id="res-cnpj">-</td></tr>
+        <tr><th>Empresa:</th><td id="res-empresa">-</td></tr>
+        <tr><th>Placa Antiga:</th><td id="res-placa-antiga">-</td></tr>
+        <tr><th>CRLV Atual:</th><td id="res-crlv">-</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
