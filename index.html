@@ -11,7 +11,7 @@
 <!-- Tela de Login -->
 <div id="login-screen" class="screen active">
   <div class="login-box">
-    <h2>Sistema Consulta Frota Coordenadas</h2>
+    <h2>Sistema de Consulta Frota</h2>
     <form id="login-form">
       <div class="form-group">
         <label for="usuario">Login:</label>
@@ -35,9 +35,7 @@
 
   <!-- Menu deslizante -->
   <div class="sidebar-menu" id="sidebar-menu">
-    <ul>
-      <li><a href="#" onclick="alert('Funcionalidade de alterar senha em desenvolvimento')">Alterar senha</a></li>
-      <li id="menu-gerenciar" class="hide"><a href="#" id="link-gerenciar">Gerenciar Usuários</a></li>
+    <ul>      
       <li><a href="#" id="logout-link">Sair</a></li>
     </ul>
   </div>
@@ -93,24 +91,6 @@
         <p>Não encontramos nenhum veículo com o valor informado.</p>
         <p>Verifique o número de ordem ou placa e tente novamente.</p>
       </div>
-    </div>
-
-    <!-- Tela de Gerenciar Usuários (visível apenas para admin) -->
-    <div id="gerenciar-usuarios" class="gerenciar-usuarios hide">
-      <h2>Gerenciar Usuários</h2>
-      <div class="form-group">
-        <label>Novo Usuário</label>
-        <input type="text" id="novo-email" placeholder="Email / usuário" />
-        <input type="text" id="novo-senha" placeholder="Senha" />
-        <select id="novo-role">
-          <option value="comum">Comum</option>
-          <option value="admin">Admin</option>
-        </select>
-        <button onclick="adicionarUsuario()">Adicionar</button>
-      </div>
-
-      <h3>Usuários Cadastrados</h3>
-      <div id="lista-usuarios"></div>
     </div>
   </div>
 </div>
