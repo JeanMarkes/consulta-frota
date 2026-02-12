@@ -30,6 +30,7 @@ document.getElementById("login-form").addEventListener("submit", async function(
 // Consulta (agora busca múltiplos e mostra lista resumida)
 async function consultar() {
   console.log("Função consultar() foi chamada!");
+
   let valor = document.getElementById("valor").value.trim().toUpperCase();
   const tipo = document.getElementById("tipo-pesquisa").value;
   const coluna = tipo === 'placa' ? 'placa' : 'ordem';
@@ -39,7 +40,7 @@ async function consultar() {
     return;
   }
 
-  // Ajustes na entrada
+  // Ajustes na entrada (igual antes)
   if (tipo === 'placa') {
     valor = valor.replace(/-/g, '');
     valor = valor.slice(0, 8);
@@ -52,7 +53,7 @@ async function consultar() {
   const { data, error } = await supabase
     .from('veiculos')
     .select('*')
-    .eq(coluna, valor);  // Sem .maybeSingle() — busca TODOS os matches
+    .eq(coluna, valor);
 
   console.log("Buscando por:", coluna, "valor:", valor);
   console.log("Resultado:", data);
@@ -63,26 +64,41 @@ async function consultar() {
     return;
   }
 
+  // Esconde tudo antes
+  document.getElementById("lista-resultados").classList.add("hide");
+  document.getElementById("resultado").classList.add("hide");
+  document.getElementById("no-result").classList.add("hide");
+
   if (data.length === 0) {
-    alert("Veículo não encontrado com o valor informado.");
-    document.getElementById("lista-resultados").classList.add("hide");
-    document.getElementById("resultado").classList.add("hide");
+    document.getElementById("no-result").classList.remove("hide");
     return;
   }
 
-  // Mostra lista de resultados resumidos
   const listaItens = document.getElementById("lista-itens");
-  listaItens.innerHTML = '';  // Limpa lista anterior
-  data.forEach((veiculo, index) => {
-    const li = document.createElement("li");
-    li.textContent = `Nº Ordem: ${veiculo.ordem} - Unidade: ${veiculo.unidade} - Placa: ${veiculo.placa}`;
-    li.style.cursor = 'pointer';
-    li.addEventListener('click', () => preencherDetalhes(veiculo));  // Clique para detalhes
-    listaItens.appendChild(li);
+  listaItens.innerHTML = '';  // Limpa
+
+  data.forEach((veiculo) => {
+    const card = document.createElement("div");
+    card.className = "resultado-card";
+    card.innerHTML = `
+      <div class="card-header">
+        <strong>Nº Ordem: ${veiculo.ordem}</strong>
+      </div>
+      <div class="card-body">
+        <p><strong>Unidade:</strong> ${veiculo.unidade || '-'}</p>
+        <p><strong>Placa:</strong> ${veiculo.placa || '-'}</p>
+      </div>
+    `;
+    card.addEventListener('click', () => preencherDetalhes(veiculo));
+    listaItens.appendChild(card);
   });
 
   document.getElementById("lista-resultados").classList.remove("hide");
-  document.getElementById("resultado").classList.add("hide");  // Esconde detalhes até clicar
+
+  // Se só um resultado, mostra detalhes automaticamente
+  if (data.length === 1) {
+    preencherDetalhes(data[0]);
+  }
 }
 
 // Função para preencher detalhes ao clicar em um item
