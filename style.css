@@ -134,6 +134,7 @@ button:hover {
   background: #34495e;
 }
 
+/* Esconder itens por padrão */
 .hide {
   display: none;
 }
