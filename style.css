@@ -190,4 +190,87 @@ h1 {
   .user-info span, .menu li a {
     font-size: 0.9em;
   }
+  
+/* Menu hambúrguer e sidebar mobile */
+.sidebar-toggle {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  cursor: pointer;
+  background: #2c3e50;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.hamburger {
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.user-name {
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+/* Menu que abre */
+.sidebar-menu {
+  position: fixed;
+  top: 0;
+  left: -250px; /* escondido à esquerda */
+  width: 250px;
+  height: 100vh;
+  background: #2c3e50;
+  color: white;
+  transition: left 0.3s ease;
+  z-index: 999;
+  padding-top: 70px; /* espaço para o nome/ícone */
+  box-shadow: 2px 0 10px rgba(0,0,0,0.4);
+}
+
+.sidebar-menu.active {
+  left: 0; /* abre ao adicionar .active */
+}
+
+.sidebar-menu ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar-menu li a {
+  display: block;
+  padding: 15px 20px;
+  color: #ecf0f1;
+  text-decoration: none;
+  font-size: 1.1em;
+}
+
+.sidebar-menu li a:hover {
+  background: #34495e;
+}
+
+/* Ajuste o conteúdo principal para não ficar sobreposto */
+.main-content {
+  margin-left: 0; /* remove margem fixa anterior */
+  padding: 70px 20px 20px 20px; /* espaço para o ícone no topo */
+}
+
+/* Responsivo - em telas grandes, pode manter visível se quiser, mas vamos esconder por padrão */
+@media (min-width: 992px) {
+  .sidebar-toggle {
+    display: none; /* opcional: esconder ícone em desktop se quiser */
+  }
+  .sidebar-menu {
+    left: 0; /* fixo em desktop */
+    transition: none;
+  }
+  .main-content {
+    margin-left: 250px;
+    padding-left: 30px;
+  }
 }
