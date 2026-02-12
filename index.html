@@ -54,10 +54,26 @@
       <button id="btn-consultar">Consultar</button>
     </div>
 
-    <!-- Nova seção: Lista de resultados resumidos -->
+    <!-- Lista de resultados resumidos -->
     <div id="lista-resultados" class="lista-resultados hide">
       <h3>Resultados Encontrados</h3>
-      <ul id="lista-itens"></ul> <!-- Aqui vai a lista clicável -->
+      <div id="lista-itens" class="lista-itens"></div> <!-- Agora é div com cards -->
+    </div>
+    
+    <!-- Área de detalhes ou mensagem de não encontrado -->
+    <div id="resultado-area">
+      <div id="resultado" class="resultado hide">
+        <h3>Detalhes do Veículo</h3>
+        <table>
+          <!-- tabela igual, não muda -->
+        </table>
+      </div>
+    
+      <!-- Mensagem quando não encontrar -->
+      <div id="no-result" class="no-result hide">
+        <p>Nenhum veículo encontrado com o valor informado.</p>
+        <p>Verifique o número de ordem ou placa e tente novamente.</p>
+      </div>
     </div>
 
     <!-- Detalhes completos (tabela) -->
