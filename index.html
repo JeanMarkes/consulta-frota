@@ -1,14 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <script type="module" src="script.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Consulta Frota Coordenadas</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
 <!-- Tela de Login -->
 <div id="login-screen" class="screen active">
   <div class="login-box">
@@ -26,7 +24,6 @@
     </form>
   </div>
 </div>
-
 <!-- Tela principal (após login) -->
 <div id="main-screen" class="screen">
   <!-- Sidebar -->
@@ -39,20 +36,17 @@
       <!-- Pode adicionar mais opções depois -->
     </ul>
   </div>
-
   <!-- Conteúdo principal -->
   <div class="main-content">
     <h1>Consulta de Veículos</h1>
-
     <div class="search-box">
       <select id="tipo-pesquisa">
         <option value="placa">Placa</option>
         <option value="ordem">Número de Ordem</option>
       </select>
       <input type="text" id="valor" placeholder="Digite o valor..." />
-      <button onclick="consultar()">Consultar</button>
+      <button id="btn-consultar">Consultar</button>  <!-- Removi onclick, vamos usar addEventListener no JS -->
     </div>
-
     <div id="resultado" class="resultado hide">
       <h3>Resultado da Consulta</h3>
       <table>
@@ -77,7 +71,6 @@
     </div>
   </div>
 </div>
-
-<script type="module" src="script.js"></script>
+<script type="module" src="script.js"></script>  <!-- Só um aqui, no final do body -->
 </body>
 </html>
