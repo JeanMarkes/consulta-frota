@@ -214,6 +214,7 @@ function preencherDetalhes(veiculo) {
   document.getElementById("res-empresa").textContent = veiculo.empresa || '-';
   document.getElementById("res-placa-antiga").textContent = veiculo.placa_antiga || '-';
   document.getElementById("res-crlv").textContent = veiculo.crlv_atual || '-';
+  document.getElementById("res-ultima").textContent = veiculo.ultima_atualizacao || '-';
 
   document.getElementById("resultado").classList.remove("hide");
 }
