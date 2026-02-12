@@ -291,17 +291,18 @@ h1 {
   display: none;
 }
 
+.login-error {
+  margin-top: 25px;
+  color: #c0392b;
+  font-weight: 700;
+  text-align: center;
+  font-size: 15px;
+}
+
 /* Responsivo */
 @media (max-width: 768px) {
   .main-content {
     padding: 80px 15px 15px 15px;
   }
+}
 
-  .login-error {
-  margin-top: 25px;          /* Mais distante do botão */
-  color: #c0392b;            /* Vermelho mais forte e elegante */
-  font-weight: 700;          /* Negrito mais marcado */
-  text-align: center;
-  font-size: 15px;
-}
-}
