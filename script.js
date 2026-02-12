@@ -1,15 +1,21 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
-// Chaves Supabase
+// ==============================
+// CONFIGURAÇÃO SUPABASE
+// ==============================
 const supabaseUrl = 'https://cbzcucovyuuxqoyesffb.supabase.co';
-const supabaseKey = 'sb_publishable_drt9tBqp5TaSpXnn3y5eFw_D5cC1cA7'; // COLE A CHAVE INTEIRA AQUI!
+const supabaseKey = 'sb_publishable_drt9tBqp5TaSpXnn3y5eFw_D5cC1cA7';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-console.log("Script.js carregou com sucesso!");
+console.log("Script.js carregado com sucesso!");
 
-// Login
+
+// ==============================
+// LOGIN
+// ==============================
 document.getElementById("login-form").addEventListener("submit", async function(e) {
   e.preventDefault();
+
   const email = document.getElementById("usuario").value.trim();
   const senha = document.getElementById("senha").value.trim();
 
@@ -27,8 +33,12 @@ document.getElementById("login-form").addEventListener("submit", async function(
   document.getElementById("main-screen").classList.add("active");
 });
 
-// Consulta múltipla
+
+// ==============================
+// CONSULTA
+// ==============================
 async function consultar() {
+
   let valor = document.getElementById("valor").value.trim().toUpperCase();
   const tipo = document.getElementById("tipo-pesquisa").value;
 
@@ -37,6 +47,9 @@ async function consultar() {
     return;
   }
 
+  // ============================
+  // CONSULTA POR PLACA
+  // ============================
   if (tipo === 'placa') {
 
     valor = valor.replace(/-/g, '').slice(0, 7);
@@ -69,19 +82,23 @@ async function consultar() {
 
     let placaAlternativa = valor;
 
-    // Se for formato antigo (5º caractere número)
+    // Se for placa antiga (5º caractere número)
     if (!isNaN(valor[4])) {
+
       const letraConvertida = mapaNumeroParaLetra[valor[4]];
+
       if (letraConvertida) {
         placaAlternativa =
           valor.substring(0, 4) +
           letraConvertida +
           valor.substring(5);
       }
-    }
-    // Se for Mercosul (5º caractere letra A-J)
-    else {
+
+    } else {
+
+      // Se for Mercosul (5º caractere letra)
       const numeroConvertido = mapaLetraParaNumero[valor[4]];
+
       if (numeroConvertido) {
         placaAlternativa =
           valor.substring(0, 4) +
@@ -104,8 +121,11 @@ async function consultar() {
     return;
   }
 
-  // Consulta por ordem (mantém igual)
+  // ============================
+  // CONSULTA POR ORDEM
+  // ============================
   if (tipo === 'ordem') {
+
     valor = valor.slice(0, 5);
 
     const { data, error } = await supabase
@@ -123,12 +143,16 @@ async function consultar() {
 }
 
 
-  // Esconde tudo
+// ==============================
+// EXIBIR RESULTADOS
+// ==============================
+function exibirResultados(data) {
+
   document.getElementById("lista-resultados").classList.add("hide");
   document.getElementById("resultado").classList.add("hide");
   document.getElementById("no-result").classList.add("hide");
 
-  if (data.length === 0) {
+  if (!data || data.length === 0) {
     document.getElementById("no-result").classList.remove("hide");
     return;
   }
@@ -137,8 +161,10 @@ async function consultar() {
   listaItens.innerHTML = '';
 
   data.forEach(veiculo => {
+
     const card = document.createElement("div");
     card.className = "resultado-card";
+
     card.innerHTML = `
       <div class="card-header">
         <strong>Nº Ordem: ${veiculo.ordem}</strong>
@@ -148,20 +174,24 @@ async function consultar() {
         <p><strong>Placa:</strong> ${veiculo.placa || '-'}</p>
       </div>
     `;
+
     card.addEventListener('click', () => preencherDetalhes(veiculo));
     listaItens.appendChild(card);
   });
 
   document.getElementById("lista-resultados").classList.remove("hide");
 
-  // Se só um resultado, mostra detalhes automaticamente
   if (data.length === 1) {
     preencherDetalhes(data[0]);
   }
 }
 
-// Preenche detalhes
+
+// ==============================
+// DETALHES
+// ==============================
 function preencherDetalhes(veiculo) {
+
   document.getElementById("res-ordem").textContent = veiculo.ordem || '-';
   document.getElementById("res-placa").textContent = veiculo.placa || '-';
   document.getElementById("res-chassi").textContent = veiculo.chassi || '-';
@@ -185,7 +215,10 @@ function preencherDetalhes(veiculo) {
 
 document.getElementById("btn-consultar").addEventListener("click", consultar);
 
-// Menu hambúrguer
+
+// ==============================
+// MENU
+// ==============================
 const toggle = document.getElementById('sidebar-toggle');
 const menu = document.getElementById('sidebar-menu');
 
@@ -201,11 +234,15 @@ document.addEventListener('click', (e) => {
 
 document.getElementById('logout-link').addEventListener('click', async (e) => {
   e.preventDefault();
+
   await supabase.auth.signOut();
+
   document.getElementById("main-screen").classList.remove("active");
   document.getElementById("login-screen").classList.add("active");
+
   menu.classList.remove('active');
   document.getElementById("valor").value = '';
+
   document.getElementById("resultado").classList.add("hide");
   document.getElementById("lista-resultados").classList.add("hide");
   document.getElementById("no-result").classList.add("hide");
