@@ -7,6 +7,9 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 console.log("Script.js carregou com sucesso!");
 
+// Variável global para role
+let currentRole = 'comum';
+
 // Login
 document.getElementById("login-form").addEventListener("submit", async function(e) {
   e.preventDefault();
@@ -23,11 +26,31 @@ document.getElementById("login-form").addEventListener("submit", async function(
     return;
   }
 
+  // Busca role do usuário
+  const { data: userData, error: userError } = await supabase
+    .from('usuarios')
+    .select('role')
+    .eq('email', email)
+    .single();
+
+  if (!userError && userData) {
+    currentRole = userData.role || 'comum';
+  } else {
+    currentRole = 'comum'; // padrão
+  }
+
+  // Mostra menu de gerenciamento só para admin
+  if (currentRole === 'admin') {
+    document.getElementById("menu-gerenciar").classList.remove("hide");
+  } else {
+    document.getElementById("menu-gerenciar").classList.add("hide");
+  }
+
   document.getElementById("login-screen").classList.remove("active");
   document.getElementById("main-screen").classList.add("active");
 });
 
-// Consulta múltipla
+// Consulta múltipla (igual antes)
 async function consultar() {
   let valor = document.getElementById("valor").value.trim().toUpperCase();
   const tipo = document.getElementById("tipo-pesquisa").value;
@@ -55,7 +78,6 @@ async function consultar() {
     return;
   }
 
-  // Esconde tudo
   document.getElementById("lista-resultados").classList.add("hide");
   document.getElementById("resultado").classList.add("hide");
   document.getElementById("no-result").classList.add("hide");
@@ -73,7 +95,7 @@ async function consultar() {
     card.className = "resultado-card";
     card.innerHTML = `
       <div class="card-header">
-        <strong>Nº Ordem: ${veiculo.ordem}</strong>
+        <strong>Nº Ordem: ${veiculo.ordem || '-'}</strong>
       </div>
       <div class="card-body">
         <p><strong>Unidade:</strong> ${veiculo.unidade || '-'}</p>
@@ -86,13 +108,11 @@ async function consultar() {
 
   document.getElementById("lista-resultados").classList.remove("hide");
 
-  // Se só um resultado, mostra detalhes automaticamente
   if (data.length === 1) {
     preencherDetalhes(data[0]);
   }
 }
 
-// Preenche detalhes
 function preencherDetalhes(veiculo) {
   document.getElementById("res-ordem").textContent = veiculo.ordem || '-';
   document.getElementById("res-placa").textContent = veiculo.placa || '-';
@@ -116,6 +136,60 @@ function preencherDetalhes(veiculo) {
 }
 
 document.getElementById("btn-consultar").addEventListener("click", consultar);
+
+// Função para mostrar tela de gerenciamento
+function mostrarGerenciarUsuarios() {
+  document.getElementById("gerenciar-usuarios").classList.remove("hide");
+  carregarListaUsuarios();
+}
+
+// Adicionar usuário novo
+async function adicionarUsuario() {
+  const email = document.getElementById("novo-email").value.trim();
+  const senha = document.getElementById("novo-senha").value.trim();
+  const role = document.getElementById("novo-role").value;
+
+  if (!email || !senha) {
+    alert("Preencha email e senha");
+    return;
+  }
+
+  // Cria no Auth (usa service_role key - cole abaixo)
+  const supabaseAdmin = createClient(supabaseUrl, 'sb_secret_SUA_CHAVE_SERVICE_ROLE_AQUI'); // ← COLE A SERVICE_ROLE KEY AQUI!
+
+  const { data, error } = await supabaseAdmin.auth.admin.createUser({
+    email: email,
+    password: senha,
+    email_confirm: true
+  });
+
+  if (error) {
+    alert("Erro ao criar usuário: " + error.message);
+    return;
+  }
+
+  // Salva role na tabela usuarios
+  await supabase.from('usuarios').insert({
+    email: email,
+    role: role,
+    nome: email.split('@')[0]
+  });
+
+  alert("Usuário criado com sucesso!");
+  carregarListaUsuarios();
+}
+
+// Carrega lista de usuários
+async function carregarListaUsuarios() {
+  const { data } = await supabase.from('usuarios').select('*');
+  const lista = document.getElementById("lista-usuarios");
+  lista.innerHTML = '';
+  data.forEach(u => {
+    const div = document.createElement("div");
+    div.innerHTML = `<strong>${u.email}</strong> - Role: ${u.role}`;
+    lista.appendChild(div);
+  });
+}
 
 // Menu hambúrguer
 const toggle = document.getElementById('sidebar-toggle');
@@ -141,4 +215,5 @@ document.getElementById('logout-link').addEventListener('click', async (e) => {
   document.getElementById("resultado").classList.add("hide");
   document.getElementById("lista-resultados").classList.add("hide");
   document.getElementById("no-result").classList.add("hide");
+  document.getElementById("gerenciar-usuarios").classList.add("hide");
 });
