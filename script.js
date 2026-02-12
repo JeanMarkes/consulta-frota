@@ -137,47 +137,13 @@ function preencherDetalhes(veiculo) {
 
 document.getElementById("btn-consultar").addEventListener("click", consultar);
 
-// Função para mostrar tela de gerenciamento (corrigida)
+// Função para mostrar tela de gerenciamento
 function mostrarGerenciarUsuarios() {
+  console.log("Função mostrarGerenciarUsuarios chamada"); // Log para debug
   document.getElementById("lista-resultados").classList.add("hide");
   document.getElementById("resultado").classList.add("hide");
   document.getElementById("no-result").classList.add("hide");
   document.getElementById("gerenciar-usuarios").classList.remove("hide");
-  carregarListaUsuarios();
-}
-
-// Adicionar usuário novo (necessita da service_role key)
-async function adicionarUsuario() {
-  const email = document.getElementById("novo-email").value.trim();
-  const senha = document.getElementById("novo-senha").value.trim();
-  const role = document.getElementById("novo-role").value;
-
-  if (!email || !senha) {
-    alert("Preencha email e senha");
-    return;
-  }
-
-  // Use a service_role key aqui (cole a real do Supabase > Settings > API > Secret keys > service_role)
-  const supabaseAdmin = createClient(supabaseUrl, 'sb_secret_SUA_CHAVE_SERVICE_ROLE_AQUI');
-
-  const { data, error } = await supabaseAdmin.auth.admin.createUser({
-    email: email,
-    password: senha,
-    email_confirm: true
-  });
-
-  if (error) {
-    alert("Erro ao criar usuário: " + error.message);
-    return;
-  }
-
-  await supabase.from('usuarios').insert({
-    email: email,
-    role: role,
-    nome: email.split('@')[0]
-  });
-
-  alert("Usuário criado com sucesso!");
   carregarListaUsuarios();
 }
 
