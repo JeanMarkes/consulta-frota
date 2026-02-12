@@ -45,24 +45,29 @@ async function consultar() {
   // Ajustes na entrada
   if (tipo === 'placa') {
     valor = valor.replace(/-/g, '');   // Remove hífen
-    valor = valor.slice(0, 8);         // Limita a 8 caracteres
+    valor = valor.slice(0, 8);
   } else if (tipo === 'ordem') {
-    valor = valor.replace(/\D/g, '');  // Só números
-    valor = valor.slice(0, 5);         // Limita a 5 caracteres
+    valor = valor.replace(/\D/g, '');
+    valor = valor.slice(0, 5);
   }
 
   const { data, error } = await supabase
     .from('veiculos')
     .select('*')
-    .ilike(coluna, `%${valor}%`)  // Adiciona % no começo e fim para busca "contém" ignorando case
-    .single();
+    .ilike(coluna, valor)  // Ignora maiúsculas/minúsculas, busca exata (sem % se quiser exato)
+    .maybeSingle();  // ← Isso resolve o 406 quando não encontra!
 
   console.log("Buscando por:", coluna, "valor:", valor);
   console.log("Resultado:", data);
   console.log("Erro:", error);
 
-  if (error || !data) {
-    alert("Não encontrado ou erro: " + (error ? error.message : 'Nenhum registro encontrado'));
+  if (error) {
+    alert("Erro na consulta: " + error.message);
+    return;
+  }
+
+  if (!data) {
+    alert("Veículo não encontrado com o valor informado.");
     return;
   }
 
