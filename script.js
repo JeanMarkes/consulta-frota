@@ -54,7 +54,7 @@ async function consultar() {
   const { data, error } = await supabase
     .from('veiculos')
     .select('*')
-    .ilike(coluna, valor)
+    .ilike(coluna, `%${valor}%`)  // Adiciona % no começo e fim para busca "contém" ignorando case
     .single();
 
   console.log("Buscando por:", coluna, "valor:", valor);
