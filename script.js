@@ -46,6 +46,10 @@ async function consultar() {
     .ilike(coluna, valor)   // ← mudou de eq para ilike
     .single();
 
+  console.log("Buscando por:", coluna, "valor:", valor);
+  console.log("Resultado:", data);
+  console.log("Erro:", error);
+  
   if (error || !data) {
     alert("Não encontrado ou erro: " + (error ? error.message : ''));
     return;
