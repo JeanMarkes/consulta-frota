@@ -190,3 +190,14 @@ document.getElementById('logout-link').addEventListener('click', async (e) => {
   document.getElementById("no-result").classList.add("hide");
   document.getElementById("gerenciar-usuarios").classList.add("hide");
 });
+
+// Listener para o link "Gerenciar Usuários" (sem usar onclick no HTML)
+document.addEventListener('DOMContentLoaded', () => {
+  const linkGerenciar = document.getElementById('link-gerenciar');
+  if (linkGerenciar) {
+    linkGerenciar.addEventListener('click', (e) => {
+      e.preventDefault();
+      mostrarGerenciarUsuarios();
+    });
+  }
+});
