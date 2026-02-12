@@ -22,8 +22,7 @@ document.getElementById("login-form").addEventListener("submit", async function(
     alert("Login ou senha incorretos! " + error.message);
     return;
   }
-
-  document.getElementById("nome-usuario").textContent = email.split('@')[0];
+  
   document.getElementById("login-screen").classList.remove("active");
   document.getElementById("main-screen").classList.add("active");
 });
