@@ -2,13 +2,10 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 // Chaves Supabase
 const supabaseUrl = 'https://cbzcucovyuuxqoyesffb.supabase.co';
-const supabaseKey = 'sb_publishable_drt9tBqp5TaSpXnn3y5eFw_D5cC1cA7'; // COLE A CHAVE PUBLISHABLE INTEIRA AQUI!
+const supabaseKey = 'sb_publishable_drt9tBqp5TaSpXnn3y5eFw_D5cC1cA7'; // COLE A CHAVE INTEIRA AQUI!
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 console.log("Script.js carregou com sucesso!");
-
-// Variável global para role
-let currentRole = 'comum';
 
 // Login
 document.getElementById("login-form").addEventListener("submit", async function(e) {
@@ -24,26 +21,6 @@ document.getElementById("login-form").addEventListener("submit", async function(
   if (error) {
     alert("Login ou senha incorretos! " + error.message);
     return;
-  }
-
-  // Busca role do usuário
-  const { data: userData, error: userError } = await supabase
-    .from('usuarios')
-    .select('role')
-    .eq('email', email)
-    .single();
-
-  if (!userError && userData) {
-    currentRole = userData.role || 'comum';
-  } else {
-    currentRole = 'comum';
-  }
-
-  // Mostra menu de gerenciamento só para admin
-  if (currentRole === 'admin') {
-    document.getElementById("menu-gerenciar").classList.remove("hide");
-  } else {
-    document.getElementById("menu-gerenciar").classList.add("hide");
   }
 
   document.getElementById("login-screen").classList.remove("active");
@@ -78,6 +55,7 @@ async function consultar() {
     return;
   }
 
+  // Esconde tudo
   document.getElementById("lista-resultados").classList.add("hide");
   document.getElementById("resultado").classList.add("hide");
   document.getElementById("no-result").classList.add("hide");
@@ -95,7 +73,7 @@ async function consultar() {
     card.className = "resultado-card";
     card.innerHTML = `
       <div class="card-header">
-        <strong>Nº Ordem: ${veiculo.ordem || '-'}</strong>
+        <strong>Nº Ordem: ${veiculo.ordem}</strong>
       </div>
       <div class="card-body">
         <p><strong>Unidade:</strong> ${veiculo.unidade || '-'}</p>
@@ -108,11 +86,13 @@ async function consultar() {
 
   document.getElementById("lista-resultados").classList.remove("hide");
 
+  // Se só um resultado, mostra detalhes automaticamente
   if (data.length === 1) {
     preencherDetalhes(data[0]);
   }
 }
 
+// Preenche detalhes
 function preencherDetalhes(veiculo) {
   document.getElementById("res-ordem").textContent = veiculo.ordem || '-';
   document.getElementById("res-placa").textContent = veiculo.placa || '-';
@@ -136,33 +116,6 @@ function preencherDetalhes(veiculo) {
 }
 
 document.getElementById("btn-consultar").addEventListener("click", consultar);
-
-// Função para mostrar tela de gerenciamento
-function mostrarGerenciarUsuarios() {
-  console.log("Função mostrarGerenciarUsuarios chamada"); // Log para debug
-  document.getElementById("lista-resultados").classList.add("hide");
-  document.getElementById("resultado").classList.add("hide");
-  document.getElementById("no-result").classList.add("hide");
-  document.getElementById("gerenciar-usuarios").classList.remove("hide");
-  carregarListaUsuarios();
-}
-
-// Carrega lista de usuários
-async function carregarListaUsuarios() {
-  const { data, error } = await supabase.from('usuarios').select('*');
-  if (error) {
-    alert("Erro ao carregar usuários: " + error.message);
-    return;
-  }
-
-  const lista = document.getElementById("lista-usuarios");
-  lista.innerHTML = '';
-  data.forEach(u => {
-    const div = document.createElement("div");
-    div.innerHTML = `<strong>${u.email}</strong> - Role: ${u.role}`;
-    lista.appendChild(div);
-  });
-}
 
 // Menu hambúrguer
 const toggle = document.getElementById('sidebar-toggle');
@@ -188,16 +141,4 @@ document.getElementById('logout-link').addEventListener('click', async (e) => {
   document.getElementById("resultado").classList.add("hide");
   document.getElementById("lista-resultados").classList.add("hide");
   document.getElementById("no-result").classList.add("hide");
-  document.getElementById("gerenciar-usuarios").classList.add("hide");
-});
-
-// Listener para o link "Gerenciar Usuários" (sem usar onclick no HTML)
-document.addEventListener('DOMContentLoaded', () => {
-  const linkGerenciar = document.getElementById('link-gerenciar');
-  if (linkGerenciar) {
-    linkGerenciar.addEventListener('click', (e) => {
-      e.preventDefault();
-      mostrarGerenciarUsuarios();
-    });
-  }
 });
