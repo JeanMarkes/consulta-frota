@@ -298,9 +298,10 @@ h1 {
   }
 
   .login-error {
-  margin-top: 15px;
-  color: #e74c3c;
-  font-weight: bold;
+  margin-top: 25px;          /* Mais distante do botão */
+  color: #c0392b;            /* Vermelho mais forte e elegante */
+  font-weight: 700;          /* Negrito mais marcado */
   text-align: center;
+  font-size: 15px;
 }
 }
