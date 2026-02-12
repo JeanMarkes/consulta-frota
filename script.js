@@ -1,9 +1,8 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
-// === SUBSTITUA AQUI COM SUA CHAVE PUBLISHABLE COMPLETA ===
+// Chaves do Supabase (cole a publishable completa aqui)
 const supabaseUrl = 'https://cbzcucovyuuxqoyesffb.supabase.co';
-const supabaseKey = 'sb_publishable_drt9tBqp5TaSpXnn3y5eFw_D5cC1cA7'; // COLE A CHAVE INTEIRA AQUI (copie do Supabase > Settings > API > Publishable key > default)
-
+const supabaseKey = 'sb_publishable_drt9tBqp5TaSpXnn3y5eFw_D5cC1cA7'; // ← COLE A CHAVE INTEIRA AQUI!
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 console.log("Script.js carregou com sucesso! Supabase client criado.");
@@ -18,7 +17,7 @@ document.getElementById("login-form").addEventListener("submit", async function(
     email: email,
     password: senha,
   });
-  
+
   if (error) {
     alert("Login ou senha incorretos! " + error.message);
     return;
@@ -29,10 +28,9 @@ document.getElementById("login-form").addEventListener("submit", async function(
   document.getElementById("main-screen").classList.add("active");
 });
 
-// Função de consulta
+// Consulta
 async function consultar() {
   console.log("Função consultar() foi chamada!");
-
   let valor = document.getElementById("valor").value.trim().toUpperCase();
   const tipo = document.getElementById("tipo-pesquisa").value;
   const coluna = tipo === 'placa' ? 'placa' : 'ordem';
@@ -42,22 +40,19 @@ async function consultar() {
     return;
   }
 
-  // Ajustes na entrada
   if (tipo === 'placa') {
-    valor = valor.replace(/-/g, '');   // Remove hífen
-    valor = valor.slice(0, 8);         // Limita a 8 caracteres
+    valor = valor.replace(/-/g, '');
+    valor = valor.slice(0, 8);
   } else if (tipo === 'ordem') {
-    // Agora permite letras e números
-    valor = valor.slice(0, 5);         // Limita a 5 caracteres (ex: 25F35)
-    // NÃO removemos \D mais — letras ficam!
+    valor = valor.slice(0, 5); // Limite de 5 caracteres (ajuste se precisar de mais)
   }
 
-  console.log("Valor tratado para busca:", valor);  // Log para debug
+  console.log("Valor tratado para busca:", valor);
 
   const { data, error } = await supabase
     .from('veiculos')
     .select('*')
-    .eq(coluna, valor)  // Busca exata
+    .eq(coluna, valor)
     .maybeSingle();
 
   console.log("Buscando por:", coluna, "valor:", valor);
@@ -74,7 +69,6 @@ async function consultar() {
     return;
   }
 
-  // Preenche os campos (o resto permanece igual)
   document.getElementById("res-ordem").textContent = data.ordem || '-';
   document.getElementById("res-placa").textContent = data.placa || '-';
   document.getElementById("res-chassi").textContent = data.chassi || '-';
@@ -96,7 +90,6 @@ async function consultar() {
   document.getElementById("resultado").classList.remove("hide");
 }
 
-// Listener do botão (sem onclick no HTML)
 document.getElementById("btn-consultar").addEventListener("click", consultar);
 console.log("Listener adicionado ao botão Consultar.");
 
@@ -108,21 +101,20 @@ toggle.addEventListener('click', () => {
   menu.classList.toggle('active');
 });
 
-// Fechar menu ao clicar fora (opcional, mas bom UX)
+// Fechar ao clicar fora
 document.addEventListener('click', (e) => {
   if (!toggle.contains(e.target) && !menu.contains(e.target)) {
     menu.classList.remove('active');
   }
 });
 
-// Logout simples (volta para tela de login)
+// Logout
 document.getElementById('logout-link').addEventListener('click', async (e) => {
   e.preventDefault();
   await supabase.auth.signOut();
   document.getElementById("main-screen").classList.remove("active");
   document.getElementById("login-screen").classList.add("active");
-  menu.classList.remove('active'); // fecha menu
-  // Limpa campos se quiser
+  menu.classList.remove('active');
   document.getElementById("valor").value = '';
   document.getElementById("resultado").classList.add("hide");
 });
