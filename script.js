@@ -1,72 +1,74 @@
-// Usuário e senha fictícios para teste
-const USUARIO_CORRETO = "admin";
-const SENHA_CORRETA   = "123456";
+// Instale o cliente Supabase (não precisa instalar, só importe)
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
-document.getElementById("login-form").addEventListener("submit", function(e) {
+// Substitua com suas chaves do Supabase
+const supabaseUrl = 'https://cbzcucovyuuxqoyesffb.supabase.co';  // ex: https://xyz.supabase.co
+const supabaseKey = 'sb_publishable_drt9tBqp5TaSpXnn3y5eFw_D5cC1cA7';      // a chave longa
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Login (substitua o mock anterior)
+document.getElementById("login-form").addEventListener("submit", async function(e) {
   e.preventDefault();
 
-  const usuario = document.getElementById("usuario").value.trim();
-  const senha   = document.getElementById("senha").value.trim();
+  const email = document.getElementById("usuario").value.trim();  // Use email como login
+  const senha = document.getElementById("senha").value.trim();
 
-  if (usuario === USUARIO_CORRETO && senha === SENHA_CORRETA) {
-    document.getElementById("nome-usuario").textContent = usuario;
-    document.getElementById("login-screen").classList.remove("active");
-    document.getElementById("main-screen").classList.add("active");
-  } else {
-    alert("Login ou senha incorretos!");
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: email,
+    password: senha,
+  });
+
+  if (error) {
+    alert("Login ou senha incorretos! " + error.message);
+    return;
   }
+
+  document.getElementById("nome-usuario").textContent = email.split('@')[0];  // Mostra parte do email como nome
+  document.getElementById("login-screen").classList.remove("active");
+  document.getElementById("main-screen").classList.add("active");
 });
 
-function consultar() {
-  const tipo  = document.getElementById("tipo-pesquisa").value;
-  const valor = document.getElementById("valor").value.trim();
+// Consulta
+async function consultar() {
+  const tipo = document.getElementById("tipo-pesquisa").value;
+  const valor = document.getElementById("valor").value.trim().toUpperCase();
 
   if (!valor) {
     alert("Digite um valor para consultar!");
     return;
   }
 
-  // Aqui você colocaria a chamada fetch() para sua API real
-  // Por enquanto vamos mostrar dados fictícios
+  const coluna = tipo === 'placa' ? 'placa' : 'ordem';
 
-  const dadosMock = {
-    ordem: "123456",
-    placa: "ABC1D23",
-    chassi: "9BWZZZ377VT001234",
-    renavam: "12345678901",
-    unidade: "BH-01",
-    fab: "2020",
-    mod: "2021",
-    marca: "Volkswagen",
-    modelo: "Gol G8",
-    tipo: "Particular",
-    carroceria: "Hatch",
-    cor: "Prata",
-    municipio: "Nova Lima / MG",
-    cnpj: "12.345.678/0001-99",
-    empresa: "Transportes XYZ Ltda",
-    placaAntiga: "XYZ-9999",
-    crlv: "2025 - Em dia"
-  };
+  const { data, error } = await supabase
+    .from('veiculos')
+    .select('*')
+    .eq(coluna, valor)
+    .single();  // Pega um registro
+
+  if (error || !data) {
+    alert("Não encontrado ou erro: " + (error ? error.message : ''));
+    return;
+  }
 
   // Preenche os campos
-  document.getElementById("res-ordem").textContent        = dadosMock.ordem;
-  document.getElementById("res-placa").textContent        = tipo === "placa" ? valor.toUpperCase() : dadosMock.placa;
-  document.getElementById("res-chassi").textContent       = dadosMock.chassi;
-  document.getElementById("res-renavam").textContent      = dadosMock.renavam;
-  document.getElementById("res-unidade").textContent      = dadosMock.unidade;
-  document.getElementById("res-fab").textContent          = dadosMock.fab;
-  document.getElementById("res-mod").textContent          = dadosMock.mod;
-  document.getElementById("res-marca").textContent        = dadosMock.marca;
-  document.getElementById("res-modelo").textContent       = dadosMock.modelo;
-  document.getElementById("res-tipo").textContent         = dadosMock.tipo;
-  document.getElementById("res-carroceria").textContent   = dadosMock.carroceria;
-  document.getElementById("res-cor").textContent          = dadosMock.cor;
-  document.getElementById("res-municipio").textContent    = dadosMock.municipio;
-  document.getElementById("res-cnpj").textContent         = dadosMock.cnpj;
-  document.getElementById("res-empresa").textContent      = dadosMock.empresa;
-  document.getElementById("res-placa-antiga").textContent = dadosMock.placaAntiga;
-  document.getElementById("res-crlv").textContent         = dadosMock.crlv;
+  document.getElementById("res-ordem").textContent = data.ordem || '-';
+  document.getElementById("res-placa").textContent = data.placa || '-';
+  document.getElementById("res-chassi").textContent = data.chassi || '-';
+  document.getElementById("res-renavam").textContent = data.renavam || '-';
+  document.getElementById("res-unidade").textContent = data.unidade || '-';
+  document.getElementById("res-fab").textContent = data.fab || '-';
+  document.getElementById("res-mod").textContent = data.mod || '-';
+  document.getElementById("res-marca").textContent = data.marca || '-';
+  document.getElementById("res-modelo").textContent = data.modelo || '-';
+  document.getElementById("res-tipo").textContent = data.tipo || '-';
+  document.getElementById("res-carroceria").textContent = data.carroceria || '-';
+  document.getElementById("res-cor").textContent = data.cor || '-';
+  document.getElementById("res-municipio").textContent = data.municipio || '-';
+  document.getElementById("res-cnpj").textContent = data.cnpj || '-';
+  document.getElementById("res-empresa").textContent = data.empresa || '-';
+  document.getElementById("res-placa-antiga").textContent = data.placa_antiga || '-';
+  document.getElementById("res-crlv").textContent = data.crlv_atual || '-';
 
   document.getElementById("resultado").classList.remove("hide");
 }
