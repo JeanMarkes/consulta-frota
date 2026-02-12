@@ -81,20 +81,21 @@ button:hover {
   z-index: 1000;
   display: flex;
   align-items: center;
-  justify-content: center; /* centraliza o ícone */
+  justify-content: center;
   cursor: pointer;
   background: #2c3e50;
   color: white;
-  padding: 12px 16px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  width: 50px; /* tamanho quadrado para ficar bonito */
-  height: 50px;
+  padding: 8px 10px;         /* reduz padding para botão menor */
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  width: 40px;                /* largura menor */
+  height: 40px;               /* altura menor (quadrado) */
+  font-size: 24px;            /* ícone menor */
 }
 
 .hamburger {
-  font-size: 32px; /* ícone maior e mais visível */
-  font-weight: bold;
+  font-size: 24px;            /* tamanho do ☰ menor que antes (era 32px) */
+  line-height: 1;             /* centraliza melhor */
 }
 
 /* Menu deslizante */
