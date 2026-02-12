@@ -43,8 +43,8 @@ async function consultar() {
   const { data, error } = await supabase
     .from('veiculos')
     .select('*')
-    .eq(coluna, valor)
-    .single();  // Pega um registro
+    .ilike(coluna, valor)   // ← mudou de eq para ilike
+    .single();
 
   if (error || !data) {
     alert("Não encontrado ou erro: " + (error ? error.message : ''));
