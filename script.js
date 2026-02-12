@@ -45,17 +45,20 @@ async function consultar() {
   // Ajustes na entrada
   if (tipo === 'placa') {
     valor = valor.replace(/-/g, '');   // Remove hífen
-    valor = valor.slice(0, 8);
+    valor = valor.slice(0, 8);         // Limita a 8 caracteres
   } else if (tipo === 'ordem') {
-    valor = valor.replace(/\D/g, '');
-    valor = valor.slice(0, 5);
+    // Agora permite letras e números
+    valor = valor.slice(0, 5);         // Limita a 5 caracteres (ex: 25F35)
+    // NÃO removemos \D mais — letras ficam!
   }
+
+  console.log("Valor tratado para busca:", valor);  // Log para debug
 
   const { data, error } = await supabase
     .from('veiculos')
     .select('*')
-    .ilike(coluna, valor)  // Ignora maiúsculas/minúsculas, busca exata (sem % se quiser exato)
-    .maybeSingle();  // ← Isso resolve o 406 quando não encontra!
+    .eq(coluna, valor)  // Busca exata
+    .maybeSingle();
 
   console.log("Buscando por:", coluna, "valor:", valor);
   console.log("Resultado:", data);
@@ -71,7 +74,7 @@ async function consultar() {
     return;
   }
 
-  // Preenche os campos
+  // Preenche os campos (o resto permanece igual)
   document.getElementById("res-ordem").textContent = data.ordem || '-';
   document.getElementById("res-placa").textContent = data.placa || '-';
   document.getElementById("res-chassi").textContent = data.chassi || '-';
