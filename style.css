@@ -134,6 +134,10 @@ button:hover {
   background: #34495e;
 }
 
+.hide {
+  display: none;
+}
+
 /* Conteúdo principal */
 .main-content {
   padding: 80px 20px 20px 20px;
@@ -287,8 +291,31 @@ h1 {
   line-height: 1.5;
 }
 
-.hide {
-  display: none;
+/* Gerenciar Usuários */
+.gerenciar-usuarios {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin-top: 20px;
+}
+
+.gerenciar-usuarios h2, .gerenciar-usuarios h3 {
+  color: #2c3e50;
+}
+
+.gerenciar-usuarios .form-group {
+  margin-bottom: 20px;
+}
+
+.gerenciar-usuarios input, .gerenciar-usuarios select {
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+
+#lista-usuarios div {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
 }
 
 /* Responsivo */
