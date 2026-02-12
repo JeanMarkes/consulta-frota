@@ -2,7 +2,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 // Chaves Supabase
 const supabaseUrl = 'https://cbzcucovyuuxqoyesffb.supabase.co';
-const supabaseKey = 'sb_publishable_drt9tBqp5TaSpXnn3y5eFw_D5cC1cA7'; // COLE A CHAVE INTEIRA AQUI!
+const supabaseKey = 'sb_publishable_drt9tBqp5TaSpXnn3y5eFw_D5cC1cA7'; // COLE A CHAVE PUBLISHABLE INTEIRA AQUI!
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 console.log("Script.js carregou com sucesso!");
@@ -36,7 +36,7 @@ document.getElementById("login-form").addEventListener("submit", async function(
   if (!userError && userData) {
     currentRole = userData.role || 'comum';
   } else {
-    currentRole = 'comum'; // padrão
+    currentRole = 'comum';
   }
 
   // Mostra menu de gerenciamento só para admin
@@ -50,7 +50,7 @@ document.getElementById("login-form").addEventListener("submit", async function(
   document.getElementById("main-screen").classList.add("active");
 });
 
-// Consulta múltipla (igual antes)
+// Consulta múltipla
 async function consultar() {
   let valor = document.getElementById("valor").value.trim().toUpperCase();
   const tipo = document.getElementById("tipo-pesquisa").value;
@@ -137,13 +137,16 @@ function preencherDetalhes(veiculo) {
 
 document.getElementById("btn-consultar").addEventListener("click", consultar);
 
-// Função para mostrar tela de gerenciamento
+// Função para mostrar tela de gerenciamento (corrigida)
 function mostrarGerenciarUsuarios() {
+  document.getElementById("lista-resultados").classList.add("hide");
+  document.getElementById("resultado").classList.add("hide");
+  document.getElementById("no-result").classList.add("hide");
   document.getElementById("gerenciar-usuarios").classList.remove("hide");
   carregarListaUsuarios();
 }
 
-// Adicionar usuário novo
+// Adicionar usuário novo (necessita da service_role key)
 async function adicionarUsuario() {
   const email = document.getElementById("novo-email").value.trim();
   const senha = document.getElementById("novo-senha").value.trim();
@@ -154,8 +157,8 @@ async function adicionarUsuario() {
     return;
   }
 
-  // Cria no Auth (usa service_role key - cole abaixo)
-  const supabaseAdmin = createClient(supabaseUrl, 'sb_secret_SUA_CHAVE_SERVICE_ROLE_AQUI'); // ← COLE A SERVICE_ROLE KEY AQUI!
+  // Use a service_role key aqui (cole a real do Supabase > Settings > API > Secret keys > service_role)
+  const supabaseAdmin = createClient(supabaseUrl, 'sb_secret_SUA_CHAVE_SERVICE_ROLE_AQUI');
 
   const { data, error } = await supabaseAdmin.auth.admin.createUser({
     email: email,
@@ -168,7 +171,6 @@ async function adicionarUsuario() {
     return;
   }
 
-  // Salva role na tabela usuarios
   await supabase.from('usuarios').insert({
     email: email,
     role: role,
@@ -181,7 +183,12 @@ async function adicionarUsuario() {
 
 // Carrega lista de usuários
 async function carregarListaUsuarios() {
-  const { data } = await supabase.from('usuarios').select('*');
+  const { data, error } = await supabase.from('usuarios').select('*');
+  if (error) {
+    alert("Erro ao carregar usuários: " + error.message);
+    return;
+  }
+
   const lista = document.getElementById("lista-usuarios");
   lista.innerHTML = '';
   data.forEach(u => {
