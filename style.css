@@ -73,44 +73,73 @@ button:hover {
   background: #165a94;
 }
 
-/* Layout principal com sidebar */
-.sidebar {
-  width: 220px;
-  height: 100vh;
+/* Menu hambúrguer */
+.sidebar-toggle {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  cursor: pointer;
   background: #2c3e50;
   color: white;
-  position: fixed;
-  left: 0;
-  top: 0;
-  padding-top: 20px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
-.user-info {
-  padding: 20px;
-  border-bottom: 1px solid #34495e;
+.hamburger {
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.user-name {
   font-size: 1.1em;
   font-weight: bold;
 }
 
-.menu {
-  list-style: none;
-  margin-top: 20px;
+/* Menu deslizante */
+.sidebar-menu {
+  position: fixed;
+  top: 0;
+  left: -250px;
+  width: 250px;
+  height: 100vh;
+  background: #2c3e50;
+  color: white;
+  transition: left 0.3s ease;
+  z-index: 999;
+  padding-top: 70px;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.4);
 }
 
-.menu li a {
+.sidebar-menu.active {
+  left: 0;
+}
+
+.sidebar-menu ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar-menu li a {
   display: block;
   padding: 15px 20px;
   color: #ecf0f1;
   text-decoration: none;
+  font-size: 1.1em;
 }
 
-.menu li a:hover {
+.sidebar-menu li a:hover {
   background: #34495e;
 }
 
+/* Conteúdo principal */
 .main-content {
-  margin-left: 220px;
-  padding: 30px;
+  padding: 80px 20px 20px 20px; /* Espaço para o menu no topo */
+  min-height: 100vh;
 }
 
 h1 {
@@ -179,98 +208,9 @@ h1 {
   display: none;
 }
 
-/* Responsivo básico */
+/* Responsivo */
 @media (max-width: 768px) {
-  .sidebar {
-    width: 70px;
-  }
   .main-content {
-    margin-left: 70px;
-  }
-  .user-info span, .menu li a {
-    font-size: 0.9em;
-  }
-  
-/* Menu hambúrguer e sidebar mobile */
-.sidebar-toggle {
-  position: fixed;
-  top: 15px;
-  left: 15px;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  cursor: pointer;
-  background: #2c3e50;
-  color: white;
-  padding: 10px 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
-
-.hamburger {
-  font-size: 28px;
-  font-weight: bold;
-}
-
-.user-name {
-  font-size: 1.1em;
-  font-weight: bold;
-}
-
-/* Menu que abre */
-.sidebar-menu {
-  position: fixed;
-  top: 0;
-  left: -250px; /* escondido à esquerda */
-  width: 250px;
-  height: 100vh;
-  background: #2c3e50;
-  color: white;
-  transition: left 0.3s ease;
-  z-index: 999;
-  padding-top: 70px; /* espaço para o nome/ícone */
-  box-shadow: 2px 0 10px rgba(0,0,0,0.4);
-}
-
-.sidebar-menu.active {
-  left: 0; /* abre ao adicionar .active */
-}
-
-.sidebar-menu ul {
-  list-style: none;
-  padding: 0;
-}
-
-.sidebar-menu li a {
-  display: block;
-  padding: 15px 20px;
-  color: #ecf0f1;
-  text-decoration: none;
-  font-size: 1.1em;
-}
-
-.sidebar-menu li a:hover {
-  background: #34495e;
-}
-
-/* Ajuste o conteúdo principal para não ficar sobreposto */
-.main-content {
-  margin-left: 0; /* remove margem fixa anterior */
-  padding: 70px 20px 20px 20px; /* espaço para o ícone no topo */
-}
-
-/* Responsivo - em telas grandes, pode manter visível se quiser, mas vamos esconder por padrão */
-@media (min-width: 992px) {
-  .sidebar-toggle {
-    display: none; /* opcional: esconder ícone em desktop se quiser */
-  }
-  .sidebar-menu {
-    left: 0; /* fixo em desktop */
-    transition: none;
-  }
-  .main-content {
-    margin-left: 250px;
-    padding-left: 30px;
+    padding: 80px 15px 15px 15px;
   }
 }
