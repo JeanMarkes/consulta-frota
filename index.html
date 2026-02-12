@@ -28,13 +28,18 @@
 
 <!-- Tela principal (após login) -->
 <div id="main-screen" class="screen">
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <div class="user-info">
-      <span id="nome-usuario">Usuário</span>
-    </div>
-    <ul class="menu">
+  <!-- Menu hambúrguer (ícone) -->
+  <div class="sidebar-toggle" id="sidebar-toggle">
+    <span class="hamburger">☰</span> <!-- ou use ícone de 3 linhas -->
+    <span id="nome-usuario" class="user-name">Usuário</span>
+  </div>
+  
+  <!-- Menu que abre ao clicar -->
+  <div class="sidebar-menu" id="sidebar-menu">
+    <ul>
       <li><a href="#" onclick="alert('Funcionalidade de alterar senha em desenvolvimento')">Alterar senha</a></li>
+      <li><a href="#" id="logout-link">Sair</a></li>
+      <!-- Pode adicionar mais itens aqui depois -->
     </ul>
   </div>
 
