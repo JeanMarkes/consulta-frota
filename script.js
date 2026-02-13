@@ -37,13 +37,10 @@ document.getElementById("login-form").addEventListener("submit", async function(
   document.getElementById("main-screen").classList.add("active");
 });
 
-
-
 // ==============================
 // CONSULTA
 // ==============================
 async function consultar() {
-
   let valor = document.getElementById("valor").value.trim().toUpperCase();
   const tipo = document.getElementById("tipo-pesquisa").value;
 
@@ -55,109 +52,71 @@ async function consultar() {
   // ============================
   // CONSULTA POR PLACA
   // ============================
+  let placaAlternativa = null;
   if (tipo === 'placa') {
-
     valor = valor.replace(/-/g, '').slice(0, 7);
 
     const mapaNumeroParaLetra = {
-      "0": "A",
-      "1": "B",
-      "2": "C",
-      "3": "D",
-      "4": "E",
-      "5": "F",
-      "6": "G",
-      "7": "H",
-      "8": "I",
-      "9": "J"
+      "0": "A", "1": "B", "2": "C", "3": "D", "4": "E",
+      "5": "F", "6": "G", "7": "H", "8": "I", "9": "J"
     };
-
     const mapaLetraParaNumero = {
-      "A": "0",
-      "B": "1",
-      "C": "2",
-      "D": "3",
-      "E": "4",
-      "F": "5",
-      "G": "6",
-      "H": "7",
-      "I": "8",
-      "J": "9"
+      "A": "0", "B": "1", "C": "2", "D": "3", "E": "4",
+      "F": "5", "G": "6", "H": "7", "I": "8", "J": "9"
     };
 
-    let placaAlternativa = valor;
+    placaAlternativa = valor;
 
-    // Se for placa antiga (5º caractere número)
     if (!isNaN(valor[4])) {
-
       const letraConvertida = mapaNumeroParaLetra[valor[4]];
-
       if (letraConvertida) {
-        placaAlternativa =
-          valor.substring(0, 4) +
-          letraConvertida +
-          valor.substring(5);
+        placaAlternativa = valor.substring(0, 4) + letraConvertida + valor.substring(5);
       }
-
     } else {
-
-      // Se for Mercosul (5º caractere letra)
       const numeroConvertido = mapaLetraParaNumero[valor[4]];
-
       if (numeroConvertido) {
-        placaAlternativa =
-          valor.substring(0, 4) +
-          numeroConvertido +
-          valor.substring(5);
+        placaAlternativa = valor.substring(0, 4) + numeroConvertido + valor.substring(5);
       }
     }
+  }
 
-    const { data, error } = await supabase
-      .from('veiculos')
-      .select('*')
-      .in('placa', [valor, placaAlternativa]);
+  // ============================
+  // CONSULTA COMUM (placa ou ordem)
+  // ============================
+  let query = supabase.from('veiculos').select('*');
 
-    // Registra a consulta no log (só se estiver logado)
-    const { data: user } = await supabase.auth.getUser();
-    const usuarioEmail = user?.user?.email || 'desconhecido';
-    
-    await supabase.from('consultas_log').insert({
-      usuario_email: usuarioEmail,
-      tipo_pesquisa: tipo,
-      valor_consultado: valor,
-      resultados_encontrados: data ? data.length : 0
-    });
-    
-    if (error) {
-      alert("Erro na consulta: " + error.message);
-      return;
-    }
+  if (tipo === 'placa') {
+    query = query.in('placa', [valor, placaAlternativa]);
+  } else {
+    valor = valor.slice(0, 5);
+    query = query.eq('ordem', valor);
+  }
 
-    exibirResultados(data);
+  const { data, error } = await query;
+
+  // ===========================================
+  // REGISTRA O LOG AQUI (sempre, para placa ou ordem)
+  // ===========================================
+  const { data: user } = await supabase.auth.getUser();
+  const usuarioEmail = user?.user?.email || 'desconhecido';
+
+  await supabase.from('consultas_log').insert({
+    usuario_email: usuarioEmail,
+    tipo_pesquisa: tipo,
+    valor_consultado: valor,
+    resultados_encontrados: data ? data.length : 0
+  });
+
+  // ===========================================
+  // Continua o tratamento normal
+  // ===========================================
+  if (error) {
+    alert("Erro na consulta: " + error.message);
     return;
   }
 
-  // ============================
-  // CONSULTA POR ORDEM
-  // ============================
-  if (tipo === 'ordem') {
-
-    valor = valor.slice(0, 5);
-
-    const { data, error } = await supabase
-      .from('veiculos')
-      .select('*')
-      .eq('ordem', valor);
-
-    if (error) {
-      alert("Erro na consulta: " + error.message);
-      return;
-    }
-
-    exibirResultados(data);
-  }
+  exibirResultados(data);
 }
-
 
 // ==============================
 // EXIBIR RESULTADOS
