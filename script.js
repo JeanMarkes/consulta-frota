@@ -117,6 +117,17 @@ async function consultar() {
       .select('*')
       .in('placa', [valor, placaAlternativa]);
 
+    // Registra a consulta no log (só se estiver logado)
+    const { data: user } = await supabase.auth.getUser();
+    const usuarioEmail = user?.user?.email || 'desconhecido';
+    
+    await supabase.from('consultas_log').insert({
+      usuario_email: usuarioEmail,
+      tipo_pesquisa: tipo,
+      valor_consultado: valor,
+      resultados_encontrados: data ? data.length : 0
+    });
+    
     if (error) {
       alert("Erro na consulta: " + error.message);
       return;
