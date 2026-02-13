@@ -56,7 +56,6 @@ async function consultar() {
   if (tipo === 'placa') {
   valor = valor.replace(/[\s-]/g, ''); // Remove TODOS os espaços (" ") e hífens ("-")
   valor = valor.slice(0, 7);           // Limita a 7 caracteres
-  }
 
     const mapaNumeroParaLetra = {
       "0": "A", "1": "B", "2": "C", "3": "D", "4": "E",
