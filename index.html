@@ -408,19 +408,16 @@ function renderDashboard() {
 
   const elSinc = $('#info-sincronizacao');
   if (elSinc && S.veic.length > 0) {
-    const ultimaData = S.veic[0].updated_at;
+    const ultimaData = S.veic[0].updated_at; // Ex: "2026-11-10T17:48:00" ou similar
     if (ultimaData) {
-      // Cria a data com base no texto do Supabase e subtrai 3 horas para ajustar ao fuso do Brasil
-      const dataObj = new Date(ultimaData);
-      dataObj.setHours(dataObj.getHours() - 3);
-
-      const dia = String(dataObj.getDate()).padStart(2, '0');
-      const mes = String(dataObj.getMonth() + 1).padStart(2, '0');
-      const ano = dataObj.getFullYear();
-      const hora = String(dataObj.getHours()).padStart(2, '0');
-      const min = String(dataObj.getMinutes()).padStart(2, '0');
+      // Corta a string crua para ignorar qualquer conversão de fuso do navegador
+      const partes = ultimaData.split('T');
+      const dataPart = partes[0];
+      const horaPart = partes[1] ? partes[1].substring(0, 5) : '';
       
-      elSinc.innerHTML = `🔄 Última sincronização da base: <b class="text-slate-200">${dia}/${mes}/${ano} às ${hora}:${min}</b>`;
+      const dataFmt = dataPart ? dataPart.split('-').reverse().join('/') : '';
+      
+      elSinc.innerHTML = `🔄 Última sincronização da base: <b class="text-slate-200">${dataFmt} ${horaPart ? 'às ' + horaPart : ''}</b>`;
     } else {
       elSinc.innerHTML = `🔄 Última sincronização da base: <span class="text-slate-500">Não registrada</span>`;
     }
