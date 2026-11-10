@@ -410,12 +410,17 @@ function renderDashboard() {
   if (elSinc && S.veic.length > 0) {
     const ultimaData = S.veic[0].updated_at;
     if (ultimaData) {
-      // Pega a string do Supabase no formato "2026-11-10T17:48:00" ou similar
-      const [dataPart, horaPart] = ultimaData.split('T');
-      const dataFmt = dataPart ? dataPart.split('-').reverse().join('/') : '';
-      const horaFmt = horaPart ? horaPart.substring(0, 5) : '';
+      // Cria a data com base no texto do Supabase e subtrai 3 horas para ajustar ao fuso do Brasil
+      const dataObj = new Date(ultimaData);
+      dataObj.setHours(dataObj.getHours() - 3);
+
+      const dia = String(dataObj.getDate()).padStart(2, '0');
+      const mes = String(dataObj.getMonth() + 1).padStart(2, '0');
+      const ano = dataObj.getFullYear();
+      const hora = String(dataObj.getHours()).padStart(2, '0');
+      const min = String(dataObj.getMinutes()).padStart(2, '0');
       
-      elSinc.innerHTML = `🔄 Última sincronização da base: <b class="text-slate-200">${dataFmt} ${horaFmt ? 'às ' + horaFmt : ''}</b>`;
+      elSinc.innerHTML = `🔄 Última sincronização da base: <b class="text-slate-200">${dia}/${mes}/${ano} às ${hora}:${min}</b>`;
     } else {
       elSinc.innerHTML = `🔄 Última sincronização da base: <span class="text-slate-500">Não registrada</span>`;
     }
