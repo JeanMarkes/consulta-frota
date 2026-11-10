@@ -413,6 +413,7 @@ function renderDashboard() {
   const veiculosAtivosControle = veiculosAtivosGeral.filter(v => {
     const grupo = String(v.grupo_frota || '').trim().toUpperCase();
     return grupo === 'CONTROLE';
+  });
 
   // --- Contagem por tipo para o card "Veículos Total" (Apenas Ativos) ---
   const tiposTotalAtivos = {};
