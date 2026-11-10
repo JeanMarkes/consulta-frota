@@ -404,6 +404,10 @@ const prazoTxt = (m) => {
 };
 
 function renderDashboard() {
+  
+  console.log("Total de veículos na memória (S.veic):", S.veic.length);
+  console.log("Exemplo do primeiro veículo:", S.veic[0]);
+  
   const pend = S.multas.filter(m => m.status_processo === 'PENDENTE');
   const crit = pend.filter(m => dias(m.data_limite_fici) <= 7);
 
