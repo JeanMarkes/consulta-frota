@@ -73,20 +73,10 @@
         </table>
       </div>
 
-      <!-- Dash Garagens -->
-      <h3 class="font-semibold text-white mb-2">Veículos Ativos por Garagem (Frota: Controle)</h3>
-      <div class="overflow-auto border border-slate-800 rounded">
-        <table class="grid-x w-full text-xs">
-          <thead>
-            <tr>
-              <th>Garagem</th>
-              <th>Total Ativos (Controle)</th>
-            </tr>
-          </thead>
-          <tbody id="tb-resumo-garagem">
-            <!-- Preenchido via JavaScript -->
-          </tbody>
-        </table>
+      <!-- CARDS DE VEÍCULOS ATIVOS POR GARAGEM (FROTA: CONTROLE) -->
+      <h3 class="font-semibold text-white mb-3">Frota Ativa por Garagem (Controle)</h3>
+      <div id="cards-garagens" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Preenchido dinamicamente via JavaScript -->
       </div>
     </section>
 
@@ -436,28 +426,58 @@ function renderDashboard() {
     <td>${esc(m.orgao_autuador)}</td><td>${fmtData(m.data_limite_fici)}</td><td>${prazoTxt(m)}</td></tr>`).join('')
     || '<tr><td colspan="5" class="text-slate-500">Nenhuma multa pendente.</td></tr>';
   
-  // --- RESUMO DE ATIVOS POR GARAGEM (FROTA: CONTROLE) ---
-  const resumoPorGaragem = {};
+  /* ==========================================
+     RENDERIZAÇÃO DOS CARDS POR GARAGEM (ATIVOS / CONTROLE)
+     ========================================== */
+  const garagensMap = {};
 
   S.veic.forEach(v => {
     const isAtivo = String(v.situacao || '').toUpperCase() === 'ATIVO';
     const isControle = String(v.grupo_frota || v.grupo || '').toLowerCase() === 'controle';
 
     if (isAtivo && isControle) {
-      const garagemNome = v.garagem_nome || v.garagem || 'Não definida';
-      resumoPorGaragem[garagemNome] = (resumoPorGaragem[garagemNome] || 0) + 1;
+      const gNome = v.garagem_nome || v.garagem || 'Não definida';
+      const tipo = v.tipo_veiculo || 'OUTROS';
+
+      if (!garagensMap[gNome]) {
+        garagensMap[gNome] = { total: 0, tipos: {} };
+      }
+
+      garagensMap[gNome].total += 1;
+      garagensMap[gNome].tipos[tipo] = (garagensMap[gNome].tipos[tipo] || 0) + 1;
     }
   });
 
-  const tbodyGaragem = $('#tb-resumo-garagem');
-  if (tbodyGaragem) {
-    const chavesGaragens = Object.keys(resumoPorGaragem).sort();
-    tbodyGaragem.innerHTML = chavesGaragens.map(g => `
-      <tr>
-        <td class="font-medium text-white">${esc(g)}</td>
-        <td class="text-sky-400 font-semibold">${resumoPorGaragem[g]}</td>
-      </tr>
-    `).join('') || '<tr><td colspan="2" class="text-slate-500">Nenhum veículo encontrado com esses filtros.</td></tr>';
+  const containerCards = $('#cards-garagens');
+  if (containerCards) {
+    const chavesGaragens = Object.keys(garagensMap).sort();
+    
+    if (chavesGaragens.length === 0) {
+      containerCards.innerHTML = '<div class="col-span-full text-xs text-slate-500 bg-slate-900 border border-slate-800 p-4 rounded-lg">Nenhum veículo encontrado com os filtros de ativo e controle.</div>';
+    } else {
+      containerCards.innerHTML = chavesGaragens.map(g => {
+        const dados = garagensMap[g];
+        // Gera as tags com a contagem dinâmica de cada tipo dentro da garagem
+        const badgesTipos = Object.keys(dados.tipos).sort().map(t => 
+          `<span class="bg-slate-950 border border-slate-800 text-slate-300 px-2 py-1 rounded text-[11px]">${esc(t)}: <b class="text-white">${dados.tipos[t]}</b></span>`
+        ).join('');
+
+        return `
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between shadow-sm">
+            <div>
+              <div class="flex justify-between items-start mb-2">
+                <h4 class="font-bold text-white text-base">${esc(g)}</h4>
+                <span class="bg-emerald-950 border border-emerald-800 text-emerald-400 font-bold px-2.5 py-0.5 rounded-full text-xs">${dados.total} ativos</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mb-3">Frota: Controle</p>
+            </div>
+            <div class="flex flex-wrap gap-1.5 pt-2 border-t border-slate-800/80">
+              ${badgesTipos}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
   }
 }
 
