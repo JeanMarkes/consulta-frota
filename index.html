@@ -89,8 +89,8 @@
       </div>
       <div class="overflow-auto max-h-[calc(100vh-150px)] border border-slate-800 rounded">
         <table class="grid-x w-full text-xs">
-          <thead><tr><th>Placa</th><th>RENAVAM / Chassi</th><th>Tipo / Ano</th><th>Empresa proprietária</th><th>Garagem alocada</th><th>Licenciamento</th><th>Ações</th></tr></thead>
-          <tbody id="tb-veic"><tr><td colspan="7" class="text-slate-500">Carregando...</td></tr></tbody>
+          <thead><tr><th>Placa</th><th>RENAVAM / Chassi</th><th>Tipo / Ano</th><th>Empresa proprietária</th><th>Garagem alocada</th><th>Ações</th></tr></thead>
+          <tbody id="tb-veic"><tr><td colspan="6" class="text-slate-500">Carregando...</td></tr></tbody>
         </table>
       </div>
     </section>
@@ -223,17 +223,12 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-3">
-      <div>
-        <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
-          <span>Carroceria</span>
-          <button type="button" class="text-sky-400 hover:underline font-bold" onclick="promptNovoSimples('carrocerias', 'nome', 'Nova carroceria')">+ Adicionar</button>
-        </div>
-        <select id="mv-carroceria" class="inp"></select>
+    <div>
+      <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
+        <span>Carroceria</span>
+        <button type="button" class="text-sky-400 hover:underline font-bold" onclick="promptNovoSimples('carrocerias', 'nome', 'Nova carroceria')">+ Adicionar</button>
       </div>
-      <label class="block text-xs text-slate-400">Vencimento Licenciamento
-        <input id="mv-licenciamento" type="date" class="inp mt-1">
-      </label>
+      <select id="mv-carroceria" class="inp"></select>
     </div>
 
     <div class="flex justify-end gap-2 pt-2">
@@ -399,11 +394,6 @@ function renderDashboard() {
 }
 
 /* ---------- veículos ---------- */
-function licTxt(d) {
-  if (!d) return '<span class="text-slate-600">—</span>';
-  const n = dias(d), c = n < 0 ? 'text-red-400' : n <= 30 ? 'text-amber-400' : 'text-emerald-400';
-  return `<span class="${c}">${fmtData(d)}</span>`;
-}
 function renderVeiculos() {
   const q = $('#f-veic').value.trim().toLowerCase(), t = $('#f-tipo').value, MAX = 300;
   const lista = S.veic.filter(v => (!t || v.tipo_veiculo === t) &&
@@ -415,9 +405,8 @@ function renderVeiculos() {
     <td>${esc(TIPO[v.tipo_veiculo] || v.tipo_veiculo)} ${v.ano_fabricacao}/${v.ano_modelo}</td>
     <td>${esc(v.empresa)}</td>
     <td>${esc(v.garagem)} <button class="mini ml-1" onclick="abrirTrocaGaragem(${v.id})">Trocar</button></td>
-    <td>${licTxt(v.licenciamento_vencimento)}</td>
     <td><button class="mini" onclick="abrirModalVeiculo(${v.id})">Editar</button></td></tr>`).join('')
-    || '<tr><td colspan="7" class="text-slate-500">Nenhum veículo encontrado.</td></tr>';
+    || '<tr><td colspan="6" class="text-slate-500">Nenhum veículo encontrado.</td></tr>';
 }
 $('#f-veic').addEventListener('input', renderVeiculos);
 $('#f-tipo').addEventListener('change', renderVeiculos);
@@ -464,7 +453,6 @@ function abrirModalVeiculo(id = null) {
     $('#mv-chassi').value = v.chassi || '';
     $('#mv-anofab').value = v.ano_fabricacao || '';
     $('#mv-anomod').value = v.ano_modelo || '';
-    $('#mv-licenciamento').value = v.licenciamento_vencimento || '';
     preencherSelectsModal({
       empresa_id: v.empresa_id,
       garagem_id: v.garagem_id,
@@ -482,7 +470,6 @@ function abrirModalVeiculo(id = null) {
     $('#mv-chassi').value = '';
     $('#mv-anofab').value = new Date().getFullYear();
     $('#mv-anomod').value = new Date().getFullYear();
-    $('#mv-licenciamento').value = '';
     preencherSelectsModal();
   }
   abrir('modal-veiculo');
@@ -494,7 +481,6 @@ async function promptNovoSimples(tabela, campoNome, titulo) {
   const { data, error } = await db.from(tabela).insert({ [campoNome]: nome.trim() }).select().single();
   if (error) return toast('Erro ao cadastrar: ' + error.message, true);
   toast('Cadastrado com sucesso!');
-  // Recarrega dados de apoio
   S[tabela] = await fetchAll(() => db.from(tabela).select('*').order(campoNome));
   preencherSelectsModal();
   if(data && data.id) {
@@ -530,8 +516,7 @@ async function salvarVeiculoModal() {
     marca_id: Number($('#mv-marca').value) || null,
     modelo_id: Number($('#mv-modelo').value) || null,
     cor_id: Number($('#mv-cor').value) || null,
-    carroceria_id: Number($('#mv-carroceria').value) || null,
-    licenciamento_vencimento: $('#mv-licenciamento').value || null
+    carroceria_id: Number($('#mv-carroceria').value) || null
   };
 
   if (!payload.placa) return toast('Informe a placa do veículo.', true);
