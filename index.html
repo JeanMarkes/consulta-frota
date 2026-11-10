@@ -10,7 +10,7 @@
   body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
   .grid-x th{position:sticky;top:0;background:#0f172a;z-index:1;text-align:left;font-weight:600;color:#94a3b8}
   .grid-x td,.grid-x th{padding:.2rem .6rem;border:1px solid #1e293b;white-space:nowrap}
-  .grid-x tbody tr:hover{background:#1e293b}
+  .grid-x tbody tr:hover{background:#1e293b;cursor:pointer}
   .inp{background:#0f172a;border:1px solid #334155;border-radius:.375rem;padding:.4rem .6rem;color:#e2e8f0;width:100%}
   .inp:focus{outline:2px solid #38bdf8;border-color:transparent}
   .btn{background:#0284c7;color:#fff;border-radius:.375rem;padding:.4rem .9rem;font-weight:600}
@@ -80,17 +80,21 @@
         <h2 class="text-lg font-semibold text-white mr-2">Veículos</h2>
         <button class="btn text-xs py-2 mr-2" onclick="abrirModalVeiculo()">+ Novo Veículo</button>
         <input id="f-veic" class="inp max-w-xs" placeholder="Buscar placa, chassi, renavam, empresa...">
+        <select id="f-unidade" class="inp max-w-[10rem]">
+          <option value="">Todas as unidades</option>
+        </select>
         <select id="f-tipo" class="inp max-w-[10rem]">
           <option value="">Todos os tipos</option>
-          <option value="ONIBUS">Ônibus</option><option value="CAMINHAO">Caminhão</option>
-          <option value="CARRO">Carro</option><option value="MOTO">Moto</option>
+        </select>
+        <select id="f-empresa" class="inp max-w-[10rem]">
+          <option value="">Todas as empresas</option>
         </select>
         <span id="cnt-veic" class="text-xs text-slate-500"></span>
       </div>
       <div class="overflow-auto max-h-[calc(100vh-150px)] border border-slate-800 rounded">
         <table class="grid-x w-full text-xs">
-          <thead><tr><th>Placa</th><th>RENAVAM / Chassi</th><th>Tipo / Ano</th><th>Empresa proprietária</th><th>Garagem alocada</th><th>Ações</th></tr></thead>
-          <tbody id="tb-veic"><tr><td colspan="6" class="text-slate-500">Carregando...</td></tr></tbody>
+          <thead><tr><th>Nº Ordem</th><th>Placa</th><th>Garagem (Unidade)</th><th>Tipo de Veículo</th><th>Empresa</th></tr></thead>
+          <tbody id="tb-veic"><tr><td colspan="5" class="text-slate-500">Carregando...</td></tr></tbody>
         </table>
       </div>
     </section>
@@ -149,6 +153,22 @@
     <div class="flex justify-end gap-2 pt-1">
       <button class="btn2" onclick="fechar('modal-garagem')">Cancelar</button>
       <button class="btn" onclick="salvarTrocaGaragem()">Salvar garagem</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Detalhes Completos do Veículo (Somente Consulta) -->
+<div id="modal-detalhes-veiculo" class="hidden fixed inset-0 bg-black/70 items-center justify-center p-4 z-50 overflow-y-auto" onclick="if(event.target===this)fechar('modal-detalhes-veiculo')">
+  <div class="w-full max-w-3xl bg-slate-900 border border-slate-700 rounded-xl p-6 space-y-4 my-8 shadow-2xl">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+      <h3 class="text-lg font-semibold text-white">Detalhes Completos do Veículo</h3>
+      <button class="text-slate-400 hover:text-white font-bold text-lg" onclick="fechar('modal-detalhes-veiculo')">&times;</button>
+    </div>
+    <div id="md-conteudo" class="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs max-h-[60vh] overflow-y-auto p-1">
+      <!-- Preenchido dinamicamente com todos os campos -->
+    </div>
+    <div class="flex justify-end pt-2 border-t border-slate-800">
+      <button class="btn2" onclick="fechar('modal-detalhes-veiculo')">Fechar</button>
     </div>
   </div>
 </div>
@@ -269,7 +289,6 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 /* ---------- utilitários ---------- */
 const $ = s => document.querySelector(s);
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const TIPO = {ONIBUS:'Ônibus', CAMINHAO:'Caminhão', CARRO:'Carro', MOTO:'Moto'};
 const STATUS_M = ['PENDENTE','FICI_INDICADA','EM_DEFESA','EM_RECURSO','PAGA','CANCELADA','ENCERRADA'];
 const rotulo = s => s.charAt(0) + s.slice(1).toLowerCase().replace(/_/g, ' ');
 const fmtData = d => d ? d.split('-').reverse().join('/') : '—';
@@ -361,6 +380,7 @@ async function carregarTudo() {
       fetchAll(() => db.from('cores').select('*').order('nome')),
       fetchAll(() => db.from('carrocerias').select('*').order('nome'))
     ]);
+    popularFiltrosVeiculos();
     renderTudo();
   } catch (e) {
     toast('Erro ao carregar os dados: ' + e.message, true);
@@ -385,8 +405,16 @@ function renderDashboard() {
     kpi('Veículos ativos', S.veic.filter(v => v.situacao === 'ATIVO').length, 'text-emerald-400') +
     kpi('Multas pendentes', pend.length, 'text-sky-400') +
     kpi('FICI vencida ou a vencer em 7 dias', crit.length, crit.length ? 'text-red-400' : 'text-white');
-  $('#kpi-tipos').innerHTML = Object.keys(TIPO).map(t =>
-    `<span class="bg-slate-900 border border-slate-800 rounded px-3 py-1">${TIPO[t]}: <b class="text-white">${S.veic.filter(v => v.tipo_veiculo === t).length}</b></span>`).join('');
+  
+  // Contagem dinâmica para os tipos existentes na base
+  const tiposContagem = {};
+  S.veic.forEach(v => {
+    const tp = v.tipo_veiculo || 'NÃO DEFINIDO';
+    tiposContagem[tp] = (tiposContagem[tp] || 0) + 1;
+  });
+  $('#kpi-tipos').innerHTML = Object.keys(tiposContagem).map(t =>
+    `<span class="bg-slate-900 border border-slate-800 rounded px-3 py-1">${esc(t)}: <b class="text-white">${tiposContagem[t]}</b></span>`).join('');
+  
   $('#tb-prazos').innerHTML = pend.slice(0, 10).map(m => `<tr>
     <td class="font-semibold text-white">${esc(m.placa_snapshot)}</td><td>${esc(m.auto_infracao)}</td>
     <td>${esc(m.orgao_autuador)}</td><td>${fmtData(m.data_limite_fici)}</td><td>${prazoTxt(m)}</td></tr>`).join('')
@@ -394,41 +422,67 @@ function renderDashboard() {
 }
 
 /* ---------- veículos ---------- */
-function renderVeiculos() {
-  const q = $('#f-veic').value.trim().toLowerCase(), t = $('#f-tipo').value, MAX = 300;
-  const lista = S.veic.filter(v => (!t || v.tipo_veiculo === t) &&
-    (!q || [v.placa, v.chassi, v.renavam, v.empresa, v.garagem, v.marca, v.modelo].join(' ').toLowerCase().includes(q)));
-  $('#cnt-veic').textContent = `${Math.min(lista.length, MAX)} de ${lista.length} veículos` + (lista.length > MAX ? ' (refine a busca)' : '');
-  $('#tb-veic').innerHTML = lista.slice(0, MAX).map(v => `<tr>
-    <td class="font-semibold text-white" title="${esc(v.marca)} ${esc(v.modelo)}">${esc(v.placa)}</td>
-    <td>${esc(v.renavam || '—')} / <span class="text-slate-400">${esc(v.chassi)}</span></td>
-    <td>${esc(TIPO[v.tipo_veiculo] || v.tipo_veiculo)} ${v.ano_fabricacao}/${v.ano_modelo}</td>
-    <td>${esc(v.empresa)}</td>
-    <td>${esc(v.garagem)} <button class="mini ml-1" onclick="abrirTrocaGaragem(${v.id})">Trocar</button></td>
-    <td><button class="mini" onclick="abrirModalVeiculo(${v.id})">Editar</button></td></tr>`).join('')
-    || '<tr><td colspan="6" class="text-slate-500">Nenhum veículo encontrado.</td></tr>';
-}
-$('#f-veic').addEventListener('input', renderVeiculos);
-$('#f-tipo').addEventListener('change', renderVeiculos);
+function popularFiltrosVeiculos() {
+  const unidadesUnicas = [...new Set(S.veic.map(v => v.garagem).filter(Boolean))].sort();
+  const tiposUnicos = [...new Set(S.veic.map(v => v.tipo_veiculo).filter(Boolean))].sort();
+  const empresasUnicas = [...new Set(S.veic.map(v => v.empresa).filter(Boolean))].sort();
 
-let vSel = null;
-function abrirTrocaGaragem(id) {
-  vSel = S.veic.find(v => v.id === id);
-  $('#mg-placa').textContent = vSel.placa;
-  $('#mg-sel').innerHTML = S.garagens.filter(g => g.ativo || g.id === vSel.garagem_id).map(g =>
-    `<option value="${g.id}" ${g.id === vSel.garagem_id ? 'selected' : ''}>${esc(g.nome)} - ${esc(g.cidade)}/${esc(g.uf)}</option>`).join('');
-  abrir('modal-garagem');
+  $('#f-unidade').innerHTML = '<option value="">Todas as unidades</option>' + unidadesUnicas.map(u => `<option value="${esc(u)}">${esc(u)}</option>`).join('');
+  $('#f-tipo').innerHTML = '<option value="">Todos os tipos</option>' + tiposUnicos.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
+  $('#f-empresa').innerHTML = '<option value="">Todas as empresas</option>' + empresasUnicas.map(e => `<option value="${esc(e)}">${esc(e)}</option>`).join('');
 }
-async function salvarTrocaGaragem() {
-  const novaGaragemId = Number($('#mg-sel').value), veiculoId = vSel.id;
-  if (novaGaragemId === vSel.garagem_id) return fechar('modal-garagem');
-  const { data, error } = await db.from('veiculos').update({ garagem_id: novaGaragemId }).eq('id', veiculoId).select('id');
-  if (error) return toast('Erro ao trocar a garagem: ' + error.message, true);
-  if (!data.length) return toast('Nada foi alterado. Verifique as permissões (RLS).', true);
-  const g = S.garagens.find(x => x.id === novaGaragemId);
-  Object.assign(vSel, { garagem_id: g.id, garagem: g.nome, garagem_cidade: g.cidade, garagem_uf: g.uf });
-  fechar('modal-garagem'); renderVeiculos();
-  toast('Garagem atualizada.');
+
+function renderVeiculos() {
+  const q = $('#f-veic').value.trim().toLowerCase();
+  const unidadeSel = $('#f-unidade').value;
+  const tipoSel = $('#f-tipo').value;
+  const empresaSel = $('#f-empresa').value;
+  const MAX = 300;
+
+  const lista = S.veic.filter(v => {
+    if (unidadeSel && v.garagem !== unidadeSel) return false;
+    if (tipoSel && v.tipo_veiculo !== tipoSel) return false;
+    if (empresaSel && v.empresa !== empresaSel) return false;
+    if (q && ![v.placa, v.chassi, v.renavam, v.empresa, v.garagem, v.marca, v.modelo, v.n_ordem].join(' ').toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  $('#cnt-veic').textContent = `${Math.min(lista.length, MAX)} de ${lista.length} veículos` + (lista.length > MAX ? ' (refine a busca)' : '');
+  $('#tb-veic').innerHTML = lista.slice(0, MAX).map(v => `<tr onclick="abrirDetalhesVeiculo(${v.id})">
+    <td class="font-semibold text-white">${esc(v.n_ordem || '—')}</td>
+    <td>${esc(v.placa || '—')}</td>
+    <td>${esc(v.garagem || '—')}</td>
+    <td>${esc(v.tipo_veiculo || '—')}</td>
+    <td>${esc(v.empresa || '—')}</td>
+  </tr>`).join('')
+  || '<tr><td colspan="5" class="text-slate-500">Nenhum veículo encontrado.</td></tr>';
+}
+
+$('#f-veic').addEventListener('input', renderVeiculos);
+$('#f-unidade').addEventListener('change', renderVeiculos);
+$('#f-tipo').addEventListener('change', renderVeiculos);
+$('#f-empresa').addEventListener('change', renderVeiculos);
+
+// Visualização Completa (Modal sem botões de editar ou trocar)
+async function abrirDetalhesVeiculo(id) {
+  const v = S.veic.find(x => x.id === id);
+  if (!v) return;
+
+  const container = $('#md-conteudo');
+  container.innerHTML = '';
+
+  // Exibe todos os campos e dados técnicos disponíveis no registro
+  for (const [key, value] of Object.entries(v)) {
+    const div = document.createElement('div');
+    div.className = 'bg-slate-950 p-2 rounded border border-slate-800';
+    div.innerHTML = `
+      <span class="block text-[10px] font-semibold text-slate-400 uppercase">${esc(key)}</span>
+      <span class="text-slate-200 font-medium">${value !== null && value !== '' ? esc(value) : '—'}</span>
+    `;
+    container.appendChild(div);
+  }
+
+  abrir('modal-detalhes-veiculo');
 }
 
 /* ---------- Modal Cadastro / Edição de Veículo ---------- */
@@ -538,8 +592,12 @@ async function salvarVeiculoModal() {
 }
 
 /* ---------- multas / FICI ---------- */
-$('#f-status').innerHTML = '<option value="">Todos os status</option>' + STATUS_M.map(s => `<option value="${s}">${rotulo(s)}</option>`).join('');
-$('#mf-status').innerHTML = STATUS_M.map(s => `<option value="${s}">${rotulo(s)}</option>`).join('');
+document.addEventListener('DOMContentLoaded', () => {
+  const fStatus = $('#f-status');
+  if (fStatus) fStatus.innerHTML = '<option value="">Todos os status</option>' + STATUS_M.map(s => `<option value="${s}">${rotulo(s)}</option>`).join('');
+  const mfStatus = $('#mf-status');
+  if (mfStatus) mfStatus.innerHTML = STATUS_M.map(s => `<option value="${s}">${rotulo(s)}</option>`).join('');
+});
 
 function renderMultas() {
   const q = $('#f-multa').value.trim().toLowerCase(), st = $('#f-status').value, MAX = 300;
@@ -597,27 +655,42 @@ function renderEmpresas() {
     || '<tr><td colspan="6" class="text-slate-500">Nenhuma empresa cadastrada.</td></tr>';
 }
 
-/* ---------- relatórios ---------- */
+/* ---------- relatórios / exportações ---------- */
 function renderRelatorio() {
+  const tiposChaves = ['ONIBUS', 'CAMINHAO', 'CARRO', 'MOTO'];
   $('#tb-rel').innerHTML = S.empresas.map(e => {
-    const vs = S.veic.filter(v => v.empresa_id === e.id), n = t => vs.filter(v => v.tipo_veiculo === t).length;
-    return `<tr><td class="text-white">${esc(e.razao_social)}</td><td>${n('ONIBUS')}</td><td>${n('CAMINHAO')}</td><td>${n('CARRO')}</td><td>${n('MOTO')}</td><td class="font-semibold">${vs.length}</td></tr>`;
-  }).join('') || '<tr><td colspan="6" class="text-slate-500">Sem dados.</td></tr>';
+    const vs = S.veic.filter(v => v.empresa_id === e.id);
+    const qtds = tiposChaves.map(t => vs.filter(v => v.tipo_veiculo === t).length);
+    const total = vs.length;
+    return `<tr>
+      <td class="text-white font-semibold">${esc(e.razao_social)}</td>
+      ${qtds.map(q => `<td>${q}</td>`).join('')}
+      <td class="font-bold text-white">${total}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="6" class="text-slate-500">Nenhuma empresa para relatório.</td></tr>';
 }
-function baixarCsv(nome, cols, linhas) {
-  const L = [cols.map(c => c[0]).join(';'),
-    ...linhas.map(r => cols.map(c => `"${String(r[c[1]] ?? '').replace(/"/g, '""')}"`).join(';'))];
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob(['\ufeff' + L.join('\n')], { type: 'text/csv;charset=utf-8' }));
-  a.download = nome; a.click(); URL.revokeObjectURL(a.href);
+
+function exportarCSV(nomeArquivo, cabecalho, linhas) {
+  const csvContent = "data:text/csv;charset=utf-8," + [cabecalho.join(';'), ...linhas.map(l => l.join(';'))].join("\n");
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", nomeArquivo);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
+
 function exportarVeiculos() {
-  baixarCsv('veiculos.csv', [['Placa','placa'],['Chassi','chassi'],['Renavam','renavam'],['Tipo','tipo_veiculo'],['Ano fab.','ano_fabricacao'],
-    ['Ano modelo','ano_modelo'],['Empresa','empresa'],['Garagem','garagem'],['Situação','situacao']], S.veic);
+  const cab = ['ID', 'Placa', 'Tipo', 'Renavam', 'Chassi', 'Ano Fab', 'Ano Mod', 'Empresa', 'Garagem'];
+  const linhas = S.veic.map(v => [v.id, v.placa, v.tipo_veiculo, v.renavam, v.chassi, v.ano_fabricacao, v.ano_modelo, `"${v.empresa || ''}"`, `"${v.garagem || ''}"`]);
+  exportarCSV('veiculos_frotadoc.csv', cab, linhas);
 }
+
 function exportarMultas() {
-  baixarCsv('multas_fici.csv', [['Placa','placa_snapshot'],['Auto','auto_infracao'],['Órgão','orgao_autuador'],['Prazo FICI','data_limite_fici'],
-    ['Status','status_processo'],['Condutor','condutor_nome'],['Valor','valor']], S.multas);
+  const cab = ['ID', 'Placa', 'Auto Infracao', 'Orgao', 'Data Infracao', 'Valor', 'Status', 'Condutor'];
+  const linhas = S.multas.map(m => [m.id, m.placa_snapshot, m.auto_infracao, m.orgao_autuador, m.data_infracao, m.valor, m.status_processo, `"${m.condutor_nome || ''}"`]);
+  exportarCSV('multas_frotadoc.csv', cab, linhas);
 }
 </script>
 </body>
