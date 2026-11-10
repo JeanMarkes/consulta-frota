@@ -78,6 +78,7 @@
     <section id="tab-veiculos" class="hidden">
       <div class="flex flex-wrap items-center gap-2 mb-3">
         <h2 class="text-lg font-semibold text-white mr-2">Veículos</h2>
+        <button class="btn text-xs py-2 mr-2" onclick="abrirModalVeiculo()">+ Novo Veículo</button>
         <input id="f-veic" class="inp max-w-xs" placeholder="Buscar placa, chassi, renavam, empresa...">
         <select id="f-tipo" class="inp max-w-[10rem]">
           <option value="">Todos os tipos</option>
@@ -88,8 +89,8 @@
       </div>
       <div class="overflow-auto max-h-[calc(100vh-150px)] border border-slate-800 rounded">
         <table class="grid-x w-full text-xs">
-          <thead><tr><th>Placa</th><th>RENAVAM / Chassi</th><th>Tipo / Ano</th><th>Empresa proprietária</th><th>Garagem alocada</th><th>Licenciamento</th></tr></thead>
-          <tbody id="tb-veic"><tr><td colspan="6" class="text-slate-500">Carregando...</td></tr></tbody>
+          <thead><tr><th>Placa</th><th>RENAVAM / Chassi</th><th>Tipo / Ano</th><th>Empresa proprietária</th><th>Garagem alocada</th><th>Licenciamento</th><th>Ações</th></tr></thead>
+          <tbody id="tb-veic"><tr><td colspan="7" class="text-slate-500">Carregando...</td></tr></tbody>
         </table>
       </div>
     </section>
@@ -152,6 +153,96 @@
   </div>
 </div>
 
+<!-- Modal Veículo (Cadastro / Edição) -->
+<div id="modal-veiculo" class="hidden fixed inset-0 bg-black/70 items-center justify-center p-4 z-50 overflow-y-auto" onclick="if(event.target===this)fechar('modal-veiculo')">
+  <div class="w-full max-w-lg bg-slate-900 border border-slate-700 rounded-xl p-6 space-y-4 my-8">
+    <h3 id="mv-titulo" class="text-lg font-semibold text-white">Novo Veículo</h3>
+    <input type="hidden" id="mv-id">
+    
+    <div class="grid grid-cols-2 gap-3">
+      <label class="block text-xs text-slate-400">Placa<input id="mv-placa" class="inp mt-1 uppercase" placeholder="ABC1D23" required></label>
+      <label class="block text-xs text-slate-400">Tipo de Veículo
+        <select id="mv-tipo" class="inp mt-1">
+          <option value="ONIBUS">Ônibus</option>
+          <option value="CAMINHAO">Caminhão</option>
+          <option value="CARRO">Carro</option>
+          <option value="MOTO">Moto</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <label class="block text-xs text-slate-400">RENAVAM<input id="mv-renavam" class="inp mt-1"></label>
+      <label class="block text-xs text-slate-400">Chassi<input id="mv-chassi" class="inp mt-1 uppercase"></label>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <label class="block text-xs text-slate-400">Ano Fabricação<input id="mv-anofab" type="number" class="inp mt-1"></label>
+      <label class="block text-xs text-slate-400">Ano Modelo<input id="mv-anomod" type="number" class="inp mt-1"></label>
+    </div>
+
+    <!-- Selects com botão de mais (+) -->
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
+          <span>Empresa</span>
+          <button type="button" class="text-sky-400 hover:underline font-bold" onclick="promptNovoSimples('empresas', 'razao_social', 'Nova empresa')">+ Adicionar</button>
+        </div>
+        <select id="mv-empresa" class="inp"></select>
+      </div>
+      <div>
+        <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
+          <span>Garagem</span>
+          <button type="button" class="text-sky-400 hover:underline font-bold" onclick="promptNovaGaragem()">+ Adicionar</button>
+        </div>
+        <select id="mv-garagem" class="inp"></select>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-3 gap-3">
+      <div>
+        <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
+          <span>Marca</span>
+          <button type="button" class="text-sky-400 hover:underline font-bold" onclick="promptNovoSimples('marcas', 'nome', 'Nova marca')">+</button>
+        </div>
+        <select id="mv-marca" class="inp"></select>
+      </div>
+      <div>
+        <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
+          <span>Modelo</span>
+          <button type="button" class="text-sky-400 hover:underline font-bold" onclick="promptNovoSimples('modelos', 'nome', 'Novo modelo')">+</button>
+        </div>
+        <select id="mv-modelo" class="inp"></select>
+      </div>
+      <div>
+        <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
+          <span>Cor</span>
+          <button type="button" class="text-sky-400 hover:underline font-bold" onclick="promptNovoSimples('cores', 'nome', 'Nova cor')">+</button>
+        </div>
+        <select id="mv-cor" class="inp"></select>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
+          <span>Carroceria</span>
+          <button type="button" class="text-sky-400 hover:underline font-bold" onclick="promptNovoSimples('carrocerias', 'nome', 'Nova carroceria')">+ Adicionar</button>
+        </div>
+        <select id="mv-carroceria" class="inp"></select>
+      </div>
+      <label class="block text-xs text-slate-400">Vencimento Licenciamento
+        <input id="mv-licenciamento" type="date" class="inp mt-1">
+      </label>
+    </div>
+
+    <div class="flex justify-end gap-2 pt-2">
+      <button class="btn2" onclick="fechar('modal-veiculo')">Cancelar</button>
+      <button class="btn" onclick="salvarVeiculoModal()">Salvar Veículo</button>
+    </div>
+  </div>
+</div>
+
 <div id="modal-fici" class="hidden fixed inset-0 bg-black/70 items-center justify-center p-4 z-50" onclick="if(event.target===this)fechar('modal-fici')">
   <div class="w-full max-w-md bg-slate-900 border border-slate-700 rounded-xl p-5 space-y-3">
     <h3 class="text-base font-semibold text-white">Atualizar status da FICI</h3>
@@ -173,14 +264,11 @@
 
 <script>
 /* ==========================================================================
-   CONFIGURAÇÃO DO SUPABASE  >>>  PREENCHA AQUI  <<<
-   (Supabase > Project Settings > API)
+   CONFIGURAÇÃO DO SUPABASE
    ========================================================================== */
 const SUPABASE_URL      = 'https://cbzcucovyuuxqoyesffb.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_drt9tBqp5TaSpXnn3y5eFw_D5cC1cA7';
-/* ========================================================================== */
 
-// A CDN cria o global "supabase"; o cliente fica em "db" para não haver conflito de nome.
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ---------- utilitários ---------- */
@@ -196,7 +284,7 @@ const fmtCep = s => s ? String(s).replace(/^(\d{5})(\d{3})$/, '$1-$2') : '—';
 const fmtMoeda = n => n == null ? '—' : Number(n).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
 const hojeISO = () => new Date().toLocaleDateString('sv-SE');
 const dias = d => Math.round((new Date(d + 'T00:00:00') - new Date().setHours(0,0,0,0)) / 864e5);
-const S = {veic:[], multas:[], empresas:[], garagens:[]};
+const S = {veic:[], multas:[], empresas:[], garagens:[], marcas:[], modelos:[], cores:[], carrocerias:[]};
 
 function toast(msg, erro) {
   const t = $('#toast');
@@ -208,7 +296,6 @@ function toast(msg, erro) {
 function abrir(id) { $('#' + id).classList.remove('hidden'); $('#' + id).classList.add('flex'); }
 function fechar(id) { $('#' + id).classList.add('hidden'); $('#' + id).classList.remove('flex'); }
 
-// O Supabase devolve no máximo 1000 linhas por chamada: busca em páginas.
 async function fetchAll(montaQuery) {
   let todos = [], de = 0; const passo = 1000;
   for (;;) {
@@ -253,7 +340,7 @@ function entrar(session) {
   carregarTudo();
 }
 function mostrarLogin() {
-  Object.assign(S, {veic:[], multas:[], empresas:[], garagens:[]});
+  Object.assign(S, {veic:[], multas:[], empresas:[], garagens:[], marcas:[], modelos:[], cores:[], carrocerias:[]});
   ['tb-veic','tb-multa','tb-emp','tb-rel','tb-prazos','kpis','kpi-tipos'].forEach(i => $('#' + i).innerHTML = '');
   $('#senha').value = '';
   $('#app').classList.add('hidden');
@@ -269,11 +356,15 @@ document.querySelectorAll('.nav[data-tab]').forEach(b => b.onclick = () => {
 /* ---------- carga de dados ---------- */
 async function carregarTudo() {
   try {
-    [S.veic, S.multas, S.empresas, S.garagens] = await Promise.all([
+    [S.veic, S.multas, S.empresas, S.garagens, S.marcas, S.modelos, S.cores, S.carrocerias] = await Promise.all([
       fetchAll(() => db.from('vw_veiculos').select('*').order('placa')),
       fetchAll(() => db.from('multas_fici').select('*').order('data_limite_fici').order('id')),
       fetchAll(() => db.from('empresas').select('*').order('razao_social').order('id')),
-      fetchAll(() => db.from('garagens').select('*').order('nome').order('id'))
+      fetchAll(() => db.from('garagens').select('*').order('nome').order('id')),
+      fetchAll(() => db.from('marcas').select('*').order('nome')),
+      fetchAll(() => db.from('modelos').select('*').order('nome')),
+      fetchAll(() => db.from('cores').select('*').order('nome')),
+      fetchAll(() => db.from('carrocerias').select('*').order('nome'))
     ]);
     renderTudo();
   } catch (e) {
@@ -317,15 +408,16 @@ function renderVeiculos() {
   const q = $('#f-veic').value.trim().toLowerCase(), t = $('#f-tipo').value, MAX = 300;
   const lista = S.veic.filter(v => (!t || v.tipo_veiculo === t) &&
     (!q || [v.placa, v.chassi, v.renavam, v.empresa, v.garagem, v.marca, v.modelo].join(' ').toLowerCase().includes(q)));
-  $('#cnt-veic').textContent = `${Math.min(lista.length, MAX)} de ${lista.length} veículos` + (lista.length > MAX ? ' (refine a busca para ver os demais)' : '');
+  $('#cnt-veic').textContent = `${Math.min(lista.length, MAX)} de ${lista.length} veículos` + (lista.length > MAX ? ' (refine a busca)' : '');
   $('#tb-veic').innerHTML = lista.slice(0, MAX).map(v => `<tr>
     <td class="font-semibold text-white" title="${esc(v.marca)} ${esc(v.modelo)}">${esc(v.placa)}</td>
     <td>${esc(v.renavam || '—')} / <span class="text-slate-400">${esc(v.chassi)}</span></td>
     <td>${esc(TIPO[v.tipo_veiculo] || v.tipo_veiculo)} ${v.ano_fabricacao}/${v.ano_modelo}</td>
     <td>${esc(v.empresa)}</td>
     <td>${esc(v.garagem)} <button class="mini ml-1" onclick="abrirTrocaGaragem(${v.id})">Trocar</button></td>
-    <td>${licTxt(v.licenciamento_vencimento)}</td></tr>`).join('')
-    || '<tr><td colspan="6" class="text-slate-500">Nenhum veículo encontrado.</td></tr>';
+    <td>${licTxt(v.licenciamento_vencimento)}</td>
+    <td><button class="mini" onclick="abrirModalVeiculo(${v.id})">Editar</button></td></tr>`).join('')
+    || '<tr><td colspan="7" class="text-slate-500">Nenhum veículo encontrado.</td></tr>';
 }
 $('#f-veic').addEventListener('input', renderVeiculos);
 $('#f-tipo').addEventListener('change', renderVeiculos);
@@ -343,11 +435,121 @@ async function salvarTrocaGaragem() {
   if (novaGaragemId === vSel.garagem_id) return fechar('modal-garagem');
   const { data, error } = await db.from('veiculos').update({ garagem_id: novaGaragemId }).eq('id', veiculoId).select('id');
   if (error) return toast('Erro ao trocar a garagem: ' + error.message, true);
-  if (!data.length) return toast('Nada foi alterado. Verifique as permissões (RLS) da tabela veiculos.', true);
+  if (!data.length) return toast('Nada foi alterado. Verifique as permissões (RLS).', true);
   const g = S.garagens.find(x => x.id === novaGaragemId);
   Object.assign(vSel, { garagem_id: g.id, garagem: g.nome, garagem_cidade: g.cidade, garagem_uf: g.uf });
   fechar('modal-garagem'); renderVeiculos();
   toast('Garagem atualizada.');
+}
+
+/* ---------- Modal Cadastro / Edição de Veículo ---------- */
+function preencherSelectsModal(idsSelecionados = {}) {
+  $('#mv-empresa').innerHTML = S.empresas.map(e => `<option value="${e.id}" ${e.id === idsSelecionados.empresa_id ? 'selected' : ''}>${esc(e.razao_social)}</option>`).join('');
+  $('#mv-garagem').innerHTML = S.garagens.map(g => `<option value="${g.id}" ${g.id === idsSelecionados.garagem_id ? 'selected' : ''}>${esc(g.nome)}</option>`).join('');
+  $('#mv-marca').innerHTML = S.marcas.map(m => `<option value="${m.id}" ${m.id === idsSelecionados.marca_id ? 'selected' : ''}>${esc(m.nome)}</option>`).join('');
+  $('#mv-modelo').innerHTML = S.modelos.map(m => `<option value="${m.id}" ${m.id === idsSelecionados.modelo_id ? 'selected' : ''}>${esc(m.nome)}</option>`).join('');
+  $('#mv-cor').innerHTML = S.cores.map(c => `<option value="${c.id}" ${c.id === idsSelecionados.cor_id ? 'selected' : ''}>${esc(c.nome)}</option>`).join('');
+  $('#mv-carroceria').innerHTML = S.carrocerias.map(c => `<option value="${c.id}" ${c.id === idsSelecionados.carroceria_id ? 'selected' : ''}>${esc(c.nome)}</option>`).join('');
+}
+
+function abrirModalVeiculo(id = null) {
+  if (id) {
+    const v = S.veic.find(x => x.id === id);
+    if (!v) return;
+    $('#mv-titulo').textContent = 'Editar Veículo - ' + v.placa;
+    $('#mv-id').value = v.id;
+    $('#mv-placa').value = v.placa || '';
+    $('#mv-tipo').value = v.tipo_veiculo || 'CARRO';
+    $('#mv-renavam').value = v.renavam || '';
+    $('#mv-chassi').value = v.chassi || '';
+    $('#mv-anofab').value = v.ano_fabricacao || '';
+    $('#mv-anomod').value = v.ano_modelo || '';
+    $('#mv-licenciamento').value = v.licenciamento_vencimento || '';
+    preencherSelectsModal({
+      empresa_id: v.empresa_id,
+      garagem_id: v.garagem_id,
+      marca_id: v.marca_id,
+      modelo_id: v.modelo_id,
+      cor_id: v.cor_id,
+      carroceria_id: v.carroceria_id
+    });
+  } else {
+    $('#mv-titulo').textContent = 'Novo Veículo';
+    $('#mv-id').value = '';
+    $('#mv-placa').value = '';
+    $('#mv-tipo').value = 'CARRO';
+    $('#mv-renavam').value = '';
+    $('#mv-chassi').value = '';
+    $('#mv-anofab').value = new Date().getFullYear();
+    $('#mv-anomod').value = new Date().getFullYear();
+    $('#mv-licenciamento').value = '';
+    preencherSelectsModal();
+  }
+  abrir('modal-veiculo');
+}
+
+async function promptNovoSimples(tabela, campoNome, titulo) {
+  const nome = prompt(`Digite o nome para ${titulo}:`);
+  if (!nome || !nome.trim()) return;
+  const { data, error } = await db.from(tabela).insert({ [campoNome]: nome.trim() }).select().single();
+  if (error) return toast('Erro ao cadastrar: ' + error.message, true);
+  toast('Cadastrado com sucesso!');
+  // Recarrega dados de apoio
+  S[tabela] = await fetchAll(() => db.from(tabela).select('*').order(campoNome));
+  preencherSelectsModal();
+  if(data && data.id) {
+    const mapSel = { empresas: '#mv-empresa', marcas: '#mv-marca', modelos: '#mv-modelo', cores: '#mv-cor', carrocerias: '#mv-carroceria' };
+    if(mapSel[tabela]) $(mapSel[tabela]).value = data.id;
+  }
+}
+
+async function promptNovaGaragem() {
+  const nome = prompt('Nome da nova garagem:');
+  if (!nome || !nome.trim()) return;
+  const cidade = prompt('Município:') || '';
+  const uf = (prompt('UF (ex: MG):') || '').toUpperCase();
+  const { data, error } = await db.from('garagens').insert({ nome: nome.trim(), cidade, uf, ativo: true }).select().single();
+  if (error) return toast('Erro ao cadastrar garagem: ' + error.message, true);
+  toast('Garagem cadastrada!');
+  S.garagens = await fetchAll(() => db.from('garagens').select('*').order('nome'));
+  preencherSelectsModal();
+  if(data) $('#mv-garagem').value = data.id;
+}
+
+async function salvarVeiculoModal() {
+  const id = $('#mv-id').value;
+  const payload = {
+    placa: $('#mv-placa').value.trim().toUpperCase(),
+    tipo_veiculo: $('#mv-tipo').value,
+    renavam: $('#mv-renavam').value.trim() || null,
+    chassi: $('#mv-chassi').value.trim().toUpperCase() || null,
+    ano_fabricacao: Number($('#mv-anofab').value) || null,
+    ano_modelo: Number($('#mv-anomod').value) || null,
+    empresa_id: Number($('#mv-empresa').value) || null,
+    garagem_id: Number($('#mv-garagem').value) || null,
+    marca_id: Number($('#mv-marca').value) || null,
+    modelo_id: Number($('#mv-modelo').value) || null,
+    cor_id: Number($('#mv-cor').value) || null,
+    carroceria_id: Number($('#mv-carroceria').value) || null,
+    licenciamento_vencimento: $('#mv-licenciamento').value || null
+  };
+
+  if (!payload.placa) return toast('Informe a placa do veículo.', true);
+
+  let error;
+  if (id) {
+    const res = await db.from('veiculos').update(payload).eq('id', Number(id));
+    error = res.error;
+  } else {
+    const res = await db.from('veiculos').insert([payload]);
+    error = res.error;
+  }
+
+  if (error) return toast('Erro ao salvar veículo: ' + error.message, true);
+
+  fechar('modal-veiculo');
+  toast('Veículo salvo com sucesso!');
+  carregarTudo();
 }
 
 /* ---------- multas / FICI ---------- */
@@ -394,7 +596,7 @@ async function salvarStatusFICI() {
   };
   const { data: res, error } = await db.from('multas_fici').update(upd).eq('id', mSel.id).select();
   if (error) return toast('Erro ao salvar o status: ' + error.message, true);
-  if (!res.length) return toast('Nada foi alterado. Verifique as permissões (RLS) da tabela multas_fici.', true);
+  if (!res.length) return toast('Nada foi alterado. Verifique as permissões (RLS).', true);
   Object.assign(mSel, res[0]);
   fechar('modal-fici'); renderMultas(); renderDashboard();
   toast('Status da FICI atualizado.');
