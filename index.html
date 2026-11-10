@@ -424,6 +424,35 @@ function renderDashboard() {
     tiposAtivosControle[tp] = (tiposAtivosControle[tp] || 0) + 1;
   });
 
+// ==========================================
+  // --- LÓGICA DOS TACOGRAFOS (NOVO) ---
+  // ==========================================
+  const hoje = new Date();
+  let tacoTotalObrigatorios = 0;
+  let tacoEmDia = 0;
+  let tacoVencidos = 0;
+
+  veiculosAtivosControle.forEach(v => {
+    const tipo = String(v.tipo_veiculo || '').toUpperCase();
+    // Tipos que exigem tacógrafo (excluindo automóveis/leves)
+    const exigeTacografo = ['CAMINHAO', 'ONIBUS', 'MICRO-ONIBUS', 'TANQUE', 'REBOQUE'].includes(tipo);
+
+    if (exigeTacografo) {
+      tacoTotalObrigatorios++;
+
+      if (v.taco_validade) {
+        const dataValidade = new Date(v.taco_validade + 'T00:00:00'); // Ajuste seguro de fuso/data
+        if (dataValidade >= hoje) {
+          tacoEmDia++;
+        } else {
+          tacoVencidos++;
+        }
+      } else {
+        tacoVencidos++; // Sem data cadastrada conta como pendente/vencido
+      }
+    }
+  });
+  
   // HTML das mini-etiquetas de tipos para dentro dos KPIs
   const badgesTiposTotal = Object.keys(tiposTotalAtivos).sort().map(t => 
     `<span class="bg-slate-950 border border-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px]">${esc(t)}: <b class="text-white">${tiposTotalAtivos[t]}</b></span>`
