@@ -72,6 +72,22 @@
           <tbody id="tb-prazos"></tbody>
         </table>
       </div>
+
+      <!-- Dash Garagens -->
+      <h3 class="font-semibold text-white mb-2">Veículos Ativos por Garagem (Frota: Controle)</h3>
+      <div class="overflow-auto border border-slate-800 rounded">
+        <table class="grid-x w-full text-xs">
+          <thead>
+            <tr>
+              <th>Garagem</th>
+              <th>Total Ativos (Controle)</th>
+            </tr>
+          </thead>
+          <tbody id="tb-resumo-garagem">
+            <!-- Preenchido via JavaScript -->
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <!-- Veículos -->
@@ -419,6 +435,30 @@ function renderDashboard() {
     <td class="font-semibold text-white">${esc(m.placa_snapshot)}</td><td>${esc(m.auto_infracao)}</td>
     <td>${esc(m.orgao_autuador)}</td><td>${fmtData(m.data_limite_fici)}</td><td>${prazoTxt(m)}</td></tr>`).join('')
     || '<tr><td colspan="5" class="text-slate-500">Nenhuma multa pendente.</td></tr>';
+  
+  // --- RESUMO DE ATIVOS POR GARAGEM (FROTA: CONTROLE) ---
+  const resumoPorGaragem = {};
+
+  S.veic.forEach(v => {
+    const isAtivo = String(v.situacao || '').toUpperCase() === 'ATIVO';
+    const isControle = String(v.grupo_frota || v.grupo || '').toLowerCase() === 'controle';
+
+    if (isAtivo && isControle) {
+      const garagemNome = v.garagem_nome || v.garagem || 'Não definida';
+      resumoPorGaragem[garagemNome] = (resumoPorGaragem[garagemNome] || 0) + 1;
+    }
+  });
+
+  const tbodyGaragem = $('#tb-resumo-garagem');
+  if (tbodyGaragem) {
+    const chavesGaragens = Object.keys(resumoPorGaragem).sort();
+    tbodyGaragem.innerHTML = chavesGaragens.map(g => `
+      <tr>
+        <td class="font-medium text-white">${esc(g)}</td>
+        <td class="text-sky-400 font-semibold">${resumoPorGaragem[g]}</td>
+      </tr>
+    `).join('') || '<tr><td colspan="2" class="text-slate-500">Nenhum veículo encontrado com esses filtros.</td></tr>';
+  }
 }
 
 /* ---------- veículos ---------- */
