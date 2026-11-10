@@ -402,6 +402,7 @@ const prazoTxt = (m) => {
   if (n <= 7) return `<span class="text-amber-400 font-semibold">Faltam ${n} d</span>`;
   return `<span class="text-slate-400">Faltam ${n} d</span>`;
 };
+
 function renderDashboard() {
   const pend = S.multas.filter(m => m.status_processo === 'PENDENTE');
   const crit = pend.filter(m => dias(m.data_limite_fici) <= 7);
@@ -424,7 +425,7 @@ function renderDashboard() {
     tiposAtivosControle[tp] = (tiposAtivosControle[tp] || 0) + 1;
   });
 
-// ==========================================
+  // ==========================================
   // --- LÓGICA DOS TACOGRAFOS (NOVO) ---
   // ==========================================
   const hoje = new Date();
@@ -462,7 +463,7 @@ function renderDashboard() {
     `<span class="bg-slate-950 border border-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px]">${esc(t)}: <b class="text-white">${tiposAtivosControle[t]}</b></span>`
   ).join('') || '<span class="text-xs text-slate-500">Nenhum</span>';
 
-  // Montagem dos 4 KPIs em cards modernos com suporte a quebra de tipos
+  // Montagem dos KPIs em cards modernos com suporte a quebra de tipos
   const kpiCardComTipos = (t, total, badges, corTexto = 'text-white') => `
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between shadow-sm">
       <div>
@@ -485,7 +486,7 @@ function renderDashboard() {
     </div>
   `;
   
-  / Renderização de todos os KPIs (Veículos, Tacógrafos, Multas e FICI)
+  // Renderização de todos os KPIs (Veículos, Tacógrafos, Multas e FICI)
   $('#kpis').innerHTML =
     kpiCardComTipos('Veículos Total', veiculosAtivosGeral.length, badgesTiposTotal, 'text-white') +
     kpiCardComTipos('Veículos Ativos', veiculosAtivosControle.length, badgesTiposControle, 'text-emerald-400') +
