@@ -29,7 +29,7 @@
 <section id="login" class="min-h-screen flex items-center justify-center p-4">
   <form id="form-login" class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
     <div class="text-center">
-      <h1 class="text-2xl font-bold text-white">FrotaDoc</h1>
+      <h1 class="text-2xl font-bold text-white">Controle de Frota</h1>
       <p class="text-slate-400 text-xs mt-1">Controle de frota e documentos</p>
     </div>
     <div id="login-erro" class="hidden bg-red-950 border border-red-800 text-red-300 rounded p-2 text-xs"></div>
@@ -485,9 +485,12 @@ function renderDashboard() {
     </div>
   `;
   
+  / Renderização de todos os KPIs (Veículos, Tacógrafos, Multas e FICI)
   $('#kpis').innerHTML =
     kpiCardComTipos('Veículos Total', veiculosAtivosGeral.length, badgesTiposTotal, 'text-white') +
     kpiCardComTipos('Veículos Ativos', veiculosAtivosControle.length, badgesTiposControle, 'text-emerald-400') +
+    kpiSimples('Tacógrafos Válidos', tacoEmDia, 'text-emerald-400') +
+    kpiSimples('Tacógrafos Vencidos', tacoVencidos, tacoVencidos > 0 ? 'text-red-400' : 'text-white') +
     kpiSimples('Multas pendentes', pend.length, 'text-sky-400') +
     kpiSimples('FICI vencida ou a vencer em 7 dias', crit.length, crit.length ? 'text-red-400' : 'text-white');
   
