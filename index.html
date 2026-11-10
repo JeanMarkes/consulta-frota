@@ -404,7 +404,21 @@ const prazoTxt = (m) => {
 };
 
 function renderDashboard() {
-  
+
+  const elSinc = $('#info-sincronizacao');
+  if (elSinc && S.veic.length > 0) {
+    const ultimaData = S.veic[0].updated_at;
+    if (ultimaData) {
+      const [dataPart, horaPart] = ultimaData.split('T');
+      const dataFmt = dataPart ? dataPart.split('-').reverse().join('/') : '';
+      const horaFmt = horaPart ? horaPart.substring(0, 5) : '';
+      
+      elSinc.innerHTML = `🔄 Última sincronização da base: <b class="text-slate-200">${dataFmt} ${horaFmt ? 'às ' + horaFmt : ''}</b>`;
+    } else {
+      elSinc.innerHTML = `🔄 Última sincronização da base: <span class="text-slate-500">Não registrada</span>`;
+    }
+  }
+
   const pend = S.multas.filter(m => m.status_processo === 'PENDENTE');
   const crit = pend.filter(m => dias(m.data_limite_fici) <= 7);
 
@@ -491,13 +505,13 @@ function renderDashboard() {
     </div>
   `;
 
+  // kpiSimples limpo (sem o rodapé de "Atualizado")
   const kpiSimples = (t, v, c = 'text-white') => `
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between shadow-sm">
       <div>
         <div class="text-xs text-slate-400 font-medium">${t}</div>
         <div class="text-3xl font-bold ${c} mt-1">${v}</div>
       </div>
-      <div class="text-[10px] text-slate-500 pt-2 border-t border-slate-800/80">Atualizado</div>
     </div>
   `;
   
@@ -571,7 +585,7 @@ function renderDashboard() {
     }
   }
 }
-
+  
 /* ---------- veículos ---------- */
 function popularFiltrosVeiculos() {
   const unidadesUnicas = [...new Set(S.veic.map(v => v.unidade_nome || v.garagem).filter(Boolean))].sort();
