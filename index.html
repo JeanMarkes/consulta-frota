@@ -46,7 +46,7 @@
 <!-- ===================== APP ===================== -->
 <div id="app" class="hidden min-h-screen flex">
   <aside class="w-56 bg-slate-900 border-r border-slate-800 p-3 flex flex-col shrink-0">
-    <div class="text-xl font-bold text-white px-2 py-3">FrotaDoc</div>
+    <div class="text-xl font-bold text-white px-2 py-3">Controle</div>
     <nav class="space-y-1 flex-1">
       <button class="nav on" data-tab="dashboard">Dashboard</button>
       <button class="nav" data-tab="veiculos">Veículos</button>
@@ -457,8 +457,8 @@ function renderDashboard() {
   `;
   
   $('#kpis').innerHTML =
-    kpiCardComTipos('Veículos Total (Ativos)', veiculosAtivosGeral.length, badgesTiposTotal, 'text-white') +
-    kpiCardComTipos('Veículos ativos', veiculosAtivosControle.length, badgesTiposControle, 'text-emerald-400') +
+    kpiCardComTipos('Veículos Total', veiculosAtivosGeral.length, badgesTiposTotal, 'text-white') +
+    kpiCardComTipos('Veículos Ativos', veiculosAtivosControle.length, badgesTiposControle, 'text-emerald-400') +
     kpiSimples('Multas pendentes', pend.length, 'text-sky-400') +
     kpiSimples('FICI vencida ou a vencer em 7 dias', crit.length, crit.length ? 'text-red-400' : 'text-white');
   
