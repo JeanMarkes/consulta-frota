@@ -455,7 +455,7 @@ function renderVeiculos() {
   
   $('#tb-veic').innerHTML = lista.slice(0, MAX).map(v => {
     const numOrdem = v.n_ordem || v.numero_ordem || v.num_ordem || '—';
-    const unidadeNome = v.unidade_nome || v.garagem || '—';
+    const unidadeNome = v.garagem_nome || '—';
     const empresaNome = v.empresa || v.empresa_nome || '—';
     
     return `<tr onclick="abrirDetalhesVeiculo(${v.id})">
