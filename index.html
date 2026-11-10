@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FrotaDoc</title>
+<title>Controle de Frota</title>
 <script src="https://cdn.tailwindcss.com/3.4.17"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -30,7 +30,7 @@
   <form id="form-login" class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
     <div class="text-center">
       <h1 class="text-2xl font-bold text-white">FrotaDoc</h1>
-      <p class="text-slate-400 text-xs mt-1">Controle de frotas e documentos</p>
+      <p class="text-slate-400 text-xs mt-1">Controle de frota e documentos</p>
     </div>
     <div id="login-erro" class="hidden bg-red-950 border border-red-800 text-red-300 rounded p-2 text-xs"></div>
     <label class="block text-xs text-slate-400">E-mail
@@ -423,9 +423,9 @@ function renderDashboard() {
 
 /* ---------- veículos ---------- */
 function popularFiltrosVeiculos() {
-  const unidadesUnicas = [...new Set(S.veic.map(v => v.garagem).filter(Boolean))].sort();
+  const unidadesUnicas = [...new Set(S.veic.map(v => v.unidade_nome || v.garagem).filter(Boolean))].sort();
   const tiposUnicos = [...new Set(S.veic.map(v => v.tipo_veiculo).filter(Boolean))].sort();
-  const empresasUnicas = [...new Set(S.veic.map(v => v.empresa).filter(Boolean))].sort();
+  const empresasUnicas = [...new Set(S.veic.map(v => v.empresa || v.empresa_nome).filter(Boolean))].sort();
 
   $('#f-unidade').innerHTML = '<option value="">Todas as unidades</option>' + unidadesUnicas.map(u => `<option value="${esc(u)}">${esc(u)}</option>`).join('');
   $('#f-tipo').innerHTML = '<option value="">Todos os tipos</option>' + tiposUnicos.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
@@ -440,21 +440,32 @@ function renderVeiculos() {
   const MAX = 300;
 
   const lista = S.veic.filter(v => {
-    if (unidadeSel && v.garagem !== unidadeSel) return false;
+    const unidadeVal = v.unidade_nome || v.garagem || '';
+    const empresaVal = v.empresa || v.empresa_nome || '';
+    
+    if (unidadeSel && unidadeVal !== unidadeSel) return false;
     if (tipoSel && v.tipo_veiculo !== tipoSel) return false;
-    if (empresaSel && v.empresa !== empresaSel) return false;
-    if (q && ![v.placa, v.chassi, v.renavam, v.empresa, v.garagem, v.marca, v.modelo, v.n_ordem].join(' ').toLowerCase().includes(q)) return false;
+    if (empresaSel && empresaVal !== empresaSel) return false;
+    
+    if (q && ![v.placa, v.chassi, v.renavam, empresaVal, unidadeVal, v.marca, v.modelo, v.n_ordem, v.numero_ordem].join(' ').toLowerCase().includes(q)) return false;
     return true;
   });
 
   $('#cnt-veic').textContent = `${Math.min(lista.length, MAX)} de ${lista.length} veículos` + (lista.length > MAX ? ' (refine a busca)' : '');
-  $('#tb-veic').innerHTML = lista.slice(0, MAX).map(v => `<tr onclick="abrirDetalhesVeiculo(${v.id})">
-    <td class="font-semibold text-white">${esc(v.n_ordem || '—')}</td>
-    <td>${esc(v.placa || '—')}</td>
-    <td>${esc(v.garagem || '—')}</td>
-    <td>${esc(v.tipo_veiculo || '—')}</td>
-    <td>${esc(v.empresa || '—')}</td>
-  </tr>`).join('')
+  
+  $('#tb-veic').innerHTML = lista.slice(0, MAX).map(v => {
+    const numOrdem = v.n_ordem || v.numero_ordem || v.num_ordem || '—';
+    const unidadeNome = v.unidade_nome || v.garagem || '—';
+    const empresaNome = v.empresa || v.empresa_nome || '—';
+    
+    return `<tr onclick="abrirDetalhesVeiculo(${v.id})">
+      <td class="font-semibold text-white">${esc(numOrdem)}</td>
+      <td>${esc(v.placa || '—')}</td>
+      <td>${esc(unidadeNome)}</td>
+      <td>${esc(v.tipo_veiculo || '—')}</td>
+      <td>${esc(empresaNome)}</td>
+    </tr>`;
+  }).join('')
   || '<tr><td colspan="5" class="text-slate-500">Nenhum veículo encontrado.</td></tr>';
 }
 
