@@ -405,27 +405,71 @@ const prazoTxt = (m) => {
 function renderDashboard() {
   const pend = S.multas.filter(m => m.status_processo === 'PENDENTE');
   const crit = pend.filter(m => dias(m.data_limite_fici) <= 7);
-  const kpi = (t, v, c = 'text-white') => `<div class="bg-slate-900 border border-slate-800 rounded-lg p-4"><div class="text-xs text-slate-400">${t}</div><div class="text-3xl font-bold ${c} mt-1">${v}</div></div>`;
-  $('#kpis').innerHTML =
-    kpi('Veículos cadastrados', S.veic.length) +
-    kpi('Veículos ativos', S.veic.filter(v => v.situacao === 'ATIVO').length, 'text-emerald-400') +
-    kpi('Multas pendentes', pend.length, 'text-sky-400') +
-    kpi('FICI vencida ou a vencer em 7 dias', crit.length, crit.length ? 'text-red-400' : 'text-white');
-  
-  // Contagem dinâmica para os tipos existentes na base
-  const tiposContagem = {};
-  S.veic.forEach(v => {
+
+  // Filtros base para os KPIs
+  const veiculosAtivosGeral = S.veic.filter(v => String(v.situacao || '').toUpperCase() === 'ATIVO');
+  const veiculosAtivosControle = veiculosAtivosGeral.filter(v => String(v.grupo_frota || v.grupo || '').toLowerCase() === 'controle');
+
+  // --- Contagem por tipo para o card "Veículos Total" (Apenas Ativos) ---
+  const tiposTotalAtivos = {};
+  veiculosAtivosGeral.forEach(v => {
     const tp = v.tipo_veiculo || 'NÃO DEFINIDO';
-    tiposContagem[tp] = (tiposContagem[tp] || 0) + 1;
+    tiposTotalAtivos[tp] = (tiposTotalAtivos[tp] || 0) + 1;
   });
-  $('#kpi-tipos').innerHTML = Object.keys(tiposContagem).map(t =>
-    `<span class="bg-slate-900 border border-slate-800 rounded px-3 py-1">${esc(t)}: <b class="text-white">${tiposContagem[t]}</b></span>`).join('');
+
+  // --- Contagem por tipo para o card "Veículos ativos" (Ativos + Controle) ---
+  const tiposAtivosControle = {};
+  veiculosAtivosControle.forEach(v => {
+    const tp = v.tipo_veiculo || 'NÃO DEFINIDO';
+    tiposAtivosControle[tp] = (tiposAtivosControle[tp] || 0) + 1;
+  });
+
+  // HTML das mini-etiquetas de tipos para dentro dos KPIs
+  const badgesTiposTotal = Object.keys(tiposTotalAtivos).sort().map(t => 
+    `<span class="bg-slate-950 border border-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px]">${esc(t)}: <b class="text-white">${tiposTotalAtivos[t]}</b></span>`
+  ).join('') || '<span class="text-xs text-slate-500">Nenhum</span>';
+
+  const badgesTiposControle = Object.keys(tiposAtivosControle).sort().map(t => 
+    `<span class="bg-slate-950 border border-slate-800 text-slate-300 px-2 py-0.5 rounded text-[10px]">${esc(t)}: <b class="text-white">${tiposAtivosControle[t]}</b></span>`
+  ).join('') || '<span class="text-xs text-slate-500">Nenhum</span>';
+
+  // Montagem dos 4 KPIs em cards modernos com suporte a quebra de tipos
+  const kpiCardComTipos = (t, total, badges, corTexto = 'text-white') => `
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between shadow-sm">
+      <div>
+        <div class="text-xs text-slate-400 font-medium">${t}</div>
+        <div class="text-3xl font-bold ${corTexto} mt-1 mb-2">${total}</div>
+      </div>
+      <div class="flex flex-wrap gap-1 pt-2 border-t border-slate-800/80">
+        ${badges}
+      </div>
+    </div>
+  `;
+
+  const kpiSimples = (t, v, c = 'text-white') => `
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between shadow-sm">
+      <div>
+        <div class="text-xs text-slate-400 font-medium">${t}</div>
+        <div class="text-3xl font-bold ${c} mt-1">${v}</div>
+      </div>
+      <div class="text-[10px] text-slate-500 pt-2 border-t border-slate-800/80">Atualizado</div>
+    </div>
+  `;
+  
+  $('#kpis').innerHTML =
+    kpiCardComTipos('Veículos Total (Ativos)', veiculosAtivosGeral.length, badgesTiposTotal, 'text-white') +
+    kpiCardComTipos('Veículos ativos', veiculosAtivosControle.length, badgesTiposControle, 'text-emerald-400') +
+    kpiSimples('Multas pendentes', pend.length, 'text-sky-400') +
+    kpiSimples('FICI vencida ou a vencer em 7 dias', crit.length, crit.length ? 'text-red-400' : 'text-white');
+  
+  // Limpa a linha antiga de tipos globais caso ainda estivesse ativa no HTML
+  if ($('#kpi-tipos')) $('#kpi-tipos').innerHTML = '';
   
   $('#tb-prazos').innerHTML = pend.slice(0, 10).map(m => `<tr>
     <td class="font-semibold text-white">${esc(m.placa_snapshot)}</td><td>${esc(m.auto_infracao)}</td>
     <td>${esc(m.orgao_autuador)}</td><td>${fmtData(m.data_limite_fici)}</td><td>${prazoTxt(m)}</td></tr>`).join('')
     || '<tr><td colspan="5" class="text-slate-500">Nenhuma multa pendente.</td></tr>';
-  
+
   /* ==========================================
      RENDERIZAÇÃO DOS CARDS POR GARAGEM (ATIVOS / CONTROLE)
      ========================================== */
@@ -457,7 +501,6 @@ function renderDashboard() {
     } else {
       containerCards.innerHTML = chavesGaragens.map(g => {
         const dados = garagensMap[g];
-        // Gera as tags com a contagem dinâmica de cada tipo dentro da garagem
         const badgesTipos = Object.keys(dados.tipos).sort().map(t => 
           `<span class="bg-slate-950 border border-slate-800 text-slate-300 px-2 py-1 rounded text-[11px]">${esc(t)}: <b class="text-white">${dados.tipos[t]}</b></span>`
         ).join('');
