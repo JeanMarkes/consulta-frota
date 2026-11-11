@@ -428,22 +428,23 @@ function renderDashboard() {
     const ultimaDataStr = S.veic[0].sincronizado_access_em; 
     
     if (ultimaDataStr) {
-      // Exemplo do que vem do banco: "2026-11-11 10:15:00.200354-03"
-      // Vamos separar a data (antes do espaço) da hora (depois do espaço)
-      const partes = ultimaDataStr.split(' ');
-      const dataPart = partes[0]; // "2026-11-11"
-      const horaPart = partes[1]; // "10:15:00.200354-03"
-  
-      // Quebra a data em ano, mês e dia
-      const [ano, mes, dia] = dataPart.split('-');
-  
-      // Quebra a hora para pegar apenas os dois primeiros blocos (hora e minuto)
-      const horaMinutos = horaPart ? horaPart.split(':') : ['00', '00'];
-      const hora = horaMinutos[0];
-      const min = horaMinutos[1];
-  
-      // Monta o visual limpo: 11/11/2026 às 10:15
-      elSinc.innerHTML = `🔄 Última sincronização da base: <b>${dia}/${mes}/${ano} às ${hora}:${min}</b>`;
+      // Converte a string do banco para um objeto de Data do JS
+      const dataObj = new Date(ultimaDataStr);
+      
+      // Verifica se a data é válida
+      if (!isNaN(dataObj.getTime())) {
+        // Extrai os componentes formatados com zero à esquerda se necessário
+        const dia = String(dataObj.getDate()).padStart(2, '0');
+        const mes = String(dataObj.getMonth() + 1).padStart(2, '0'); // Meses no JS começam em 0
+        const ano = dataObj.getFullYear();
+        const hora = String(dataObj.getHours()).padStart(2, '0');
+        const min = String(dataObj.getMinutes()).padStart(2, '0');
+    
+        // Monta o visual limpo: 11/11/2026 às 10:15
+        elSinc.innerHTML = `🔄 Última sincronização da base: <b>${dia}/${mes}/${ano} às ${hora}:${min}</b>`;
+      } else {
+        elSinc.innerHTML = `🔄 Última sincronização da base: <span class="c-mut">Formato inválido</span>`;
+      }
     } else {
       elSinc.innerHTML = `🔄 Última sincronização da base: <span class="c-mut">Não registrada</span>`;
     }
