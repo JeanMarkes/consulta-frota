@@ -424,18 +424,26 @@ const prazoTxt = (m) => {
 function renderDashboard() {
   const elSinc = $('#info-sincronizacao');
   if (elSinc && S.veic.length > 0) {
-    const ultimaData = S.veic[0].taco_consultado; // Aponta para a nova coluna do robô
-    if (ultimaData) {
-      // Extrai os pedaços da string diretamente, sem conversão de fuso do navegador
-      const dataHoraSplit = ultimaData.split('T');
-      const dataPart = dataHoraSplit[0];
-      const horaTimeSplit = dataHoraSplit[1] ? dataHoraSplit[1].split(':') : ['00', '00'];
+    // Pega o valor da coluna nova do robô
+    const ultimaDataStr = S.veic[0].taco_consultado; 
+    
+    if (ultimaDataStr) {
+      // Exemplo do que vem do banco: "2026-11-11 10:15:00.200354-03"
+      // Vamos separar a data (antes do espaço) da hora (depois do espaço)
+      const partes = ultimaDataStr.split(' ');
+      const dataPart = partes[0]; // "2026-11-11"
+      const horaPart = partes[1]; // "10:15:00.200354-03"
+  
+      // Quebra a data em ano, mês e dia
       const [ano, mes, dia] = dataPart.split('-');
-      const hora = horaTimeSplit[0]; // Mantém a hora pura que veio do banco, sem subtrair 3
-      const min = horaTimeSplit[1];
-      
-      const horaFmt = hora + ':' + min;
-      elSinc.innerHTML = `🔄 Última sincronização da base: <b>${dia}/${mes}/${ano} às ${horaFmt}</b>`;
+  
+      // Quebra a hora para pegar apenas os dois primeiros blocos (hora e minuto)
+      const horaMinutos = horaPart ? horaPart.split(':') : ['00', '00'];
+      const hora = horaMinutos[0];
+      const min = horaMinutos[1];
+  
+      // Monta o visual limpo: 11/11/2026 às 10:15
+      elSinc.innerHTML = `🔄 Última sincronização da base: <b>${dia}/${mes}/${ano} às ${hora}:${min}</b>`;
     } else {
       elSinc.innerHTML = `🔄 Última sincronização da base: <span class="c-mut">Não registrada</span>`;
     }
