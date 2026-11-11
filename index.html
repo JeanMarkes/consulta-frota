@@ -73,6 +73,12 @@ h2.t{font-size:1.2rem;margin:0 0 1rem}h3.st{font-size:.95rem;margin:1.4rem 0 .7r
 .card .k{font-size:.78rem;color:var(--mut);font-weight:500}.card .v{font-size:1.9rem;font-weight:700;margin-top:.2rem;line-height:1.1}
 .bdg{display:flex;flex-wrap:wrap;gap:.35rem;padding-top:.6rem;border-top:1px solid var(--bd)}
 .bdg span{background:#f1f5f9;color:#475569;padding:.15rem .5rem;border-radius:7px;font-size:.7rem}.bdg b{color:var(--tx)}
+.kpi-detalhes {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
 .pill{background:#ecfdf5;color:var(--ok);font-weight:700;padding:.15rem .6rem;border-radius:99px;font-size:.72rem;white-space:nowrap}
 .c-ok{color:var(--ok)}.c-bad{color:var(--bad)}.c-info{color:var(--pri)}.c-warn{color:var(--warn)}.c-mut{color:var(--mut)}
 /* tabelas */
@@ -547,7 +553,7 @@ function renderDashboard() {
       <div class="k">${t}</div>
       <div class="v ${cor}">${v}</div>
     </div>
-    ${detalhes ? `<div class="bdg">${detalhes}</div>` : ''}
+    ${detalhes ? `<div class="kpi-detalhes">${detalhes}</div>` : ''}
   </div>`;
 
   // Informações adicionais dos tacógrafos válidos
