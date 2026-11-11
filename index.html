@@ -424,19 +424,17 @@ const prazoTxt = (m) => {
 function renderDashboard() {
   const elSinc = $('#info-sincronizacao');
   if (elSinc && S.veic.length > 0) {
-    const ultimaData = S.veic[0].updated_at;
+    const ultimaData = S.veic[0].taco_consultado; // Aponta para a nova coluna do robô
     if (ultimaData) {
       // Extrai os pedaços da string diretamente, sem conversão de fuso do navegador
       const dataHoraSplit = ultimaData.split('T');
       const dataPart = dataHoraSplit[0];
       const horaTimeSplit = dataHoraSplit[1] ? dataHoraSplit[1].split(':') : ['00', '00'];
       const [ano, mes, dia] = dataPart.split('-');
-      let hora = parseInt(horaTimeSplit[0], 10);
+      const hora = horaTimeSplit[0]; // Mantém a hora pura que veio do banco, sem subtrair 3
       const min = horaTimeSplit[1];
-      // Subtrai 3 horas manualmente (UTC -> Brasília)
-      hora = hora - 3;
-      if (hora < 0) hora = hora + 24;
-      const horaFmt = String(hora).padStart(2, '0') + ':' + min;
+      
+      const horaFmt = hora + ':' + min;
       elSinc.innerHTML = `🔄 Última sincronização da base: <b>${dia}/${mes}/${ano} às ${horaFmt}</b>`;
     } else {
       elSinc.innerHTML = `🔄 Última sincronização da base: <span class="c-mut">Não registrada</span>`;
