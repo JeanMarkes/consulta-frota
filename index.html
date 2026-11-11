@@ -547,13 +547,13 @@ function renderDashboard() {
   });
 
   const kpiTipos = (t, total, b, cor) => `<div class="card"><div><div class="k">${t}</div><div class="v ${cor}">${total}</div></div><div class="bdg">${b}</div></div>`;
-  const kpi = (t, v, cor, detalhes = '') =>
-  `<div class="card">
+  const kpi = (t, v, cor, detalhes = '') => `
+  <div class="card">
     <div>
       <div class="k">${t}</div>
       <div class="v ${cor}">${v}</div>
+      <div class="kpi-detalhes">${detalhes}</div>
     </div>
-    ${detalhes ? `<div class="kpi-detalhes">${detalhes}</div>` : ''}
   </div>`;
 
   // Informações adicionais dos tacógrafos válidos
