@@ -572,15 +572,15 @@ function renderDashboard() {
 
   // Informações adicionais dos tacógrafos válidos
   const detalhesTacoValido =
-    `<span>Vence até 7 dias: <b>${tacoVence7}</b></span>` +
+    `<span>Vence em até 7 dias: <b>${tacoVence7}</b></span>` +
     `<span>Vence de 8 a 30 dias: <b>${tacoVence30}</b></span>` +
-    `<span>Vence a mais de 30 dias: <b>${tacoVenceMais30}</b></span>`;
+    `<span>Vence após 30 dias: <b>${tacoVenceMais30}</b></span>`;
   
   // Informações adicionais dos tacógrafos vencidos
   const detalhesTacoVencido =
-    `<span>Vencido a 7 dias: <b>${tacoVencido7}</b></span>` +
+    `<span>Vencido há 7 dias: <b>${tacoVencido7}</b></span>` +
     `<span>Vencido de 8 a 30 dias: <b>${tacoVencido30}</b></span>` +
-    `<span>Vencido a mais de 30 dias: <b>${tacoVencidoMais30}</b></span>`;
+    `<span>Vencido há mais de 30 dias: <b>${tacoVencidoMais30}</b></span>`;
   
   $('#kpis').innerHTML =
       kpiTipos('Veículos Total', veiculosAtivosGeral.length, badges(contaTipos(veiculosAtivosGeral)), '') +
