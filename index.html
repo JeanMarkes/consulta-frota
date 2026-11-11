@@ -422,6 +422,10 @@ const prazoTxt = (m) => {
 };
 
 function renderDashboard() {
+
+  console.log("Objeto inteiro do veículo:", S.veic[0]);
+  console.log("Valor da coluna nova:", S.veic[0]?.sincronizado_access_em);
+  
   const elSinc = $('#info-sincronizacao');
   if (elSinc && S.veic.length > 0) {
     // Pega o valor da coluna nova do robô
