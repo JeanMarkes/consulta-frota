@@ -425,7 +425,7 @@ function renderDashboard() {
   const elSinc = $('#info-sincronizacao');
   if (elSinc && S.veic.length > 0) {
     // Pega o valor da coluna nova do robô
-    const ultimaDataStr = S.veic[0].taco_consultado; 
+    const ultimaDataStr = S.veic[0].sincronizado_access_em; 
     
     if (ultimaDataStr) {
       // Exemplo do que vem do banco: "2026-11-11 10:15:00.200354-03"
