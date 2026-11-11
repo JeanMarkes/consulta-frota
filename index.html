@@ -464,30 +464,111 @@ function renderDashboard() {
   const badges = o => Object.keys(o).sort().map(t => `<span>${esc(t)}: <b>${o[t]}</b></span>`).join('') || '<span>Nenhum</span>';
 
   /* --- Tacógrafos --- */
-  const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
-  let tacoEmDia = 0, tacoVencidos = 0;
-  veiculosAtivosControle.forEach(v => {
-    const tipo = String(v.tipo_veiculo || '').toUpperCase();
-    if (!['CAMINHAO', 'ONIBUS', 'MICRO-ONIBUS', 'TANQUE', 'REBOQUE'].includes(tipo)) return;
-    if (v.taco_validade) {
-      const partes = String(v.taco_validade).trim().split('T')[0].split('-');
-      if (partes.length === 3) {
-        const dv = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
-        if (dv >= hoje) tacoEmDia++; else tacoVencidos++;
-      } else tacoVencidos++;
-    } else tacoVencidos++;
+  // Data de hoje, considerando somente dia, mês e ano.
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  
+  // Contadores dos tacógrafos
+  let tacoEmDia = 0;
+  let tacoVencidos = 0;
+  
+  // Contadores de validade
+  let tacoVence7 = 0;
+  let tacoVence30 = 0;
+  let tacoVenceMais30 = 0;
+  
+  // Contadores de vencimento
+  let tacoVencido7 = 0;
+  let tacoVencido30 = 0;
+  let tacoVencidoMais30 = 0;
+  
+  // Filtra somente veículos com controle de tacógrafo habilitado
+  S.veic.filter(v =>
+    v.controle_tacografo === true ||
+    String(v.controle_tacografo).toLowerCase() === 'true'
+  ).forEach(v => {
+  
+    // Ignora veículos sem data de validade
+    if (!v.taco_validade) return;
+  
+    // Converte a data do banco para data local
+    const partes = String(v.taco_validade).slice(0, 10).split('-');
+  
+    if (partes.length !== 3) return;
+  
+    const dv = new Date(
+      Number(partes[0]),
+      Number(partes[1]) - 1,
+      Number(partes[2])
+    );
+  
+    // Ignora datas inválidas
+    if (isNaN(dv.getTime())) return;
+  
+    // Calcula quantos dias faltam ou passaram do vencimento
+    const diferenca = Math.round((dv - hoje) / 86400000);
+  
+    // TACÓGRAFOS VÁLIDOS
+    if (diferenca >= 0) {
+  
+      tacoEmDia++;
+  
+      if (diferenca <= 7) {
+        tacoVence7++;
+      } else if (diferenca <= 30) {
+        tacoVence30++;
+      } else {
+        tacoVenceMais30++;
+      }
+  
+    // TACÓGRAFOS VENCIDOS
+    } else {
+  
+      tacoVencidos++;
+  
+      const diasVencido = Math.abs(diferenca);
+  
+      if (diasVencido <= 7) {
+        tacoVencido7++;
+      } else if (diasVencido <= 30) {
+        tacoVencido30++;
+      } else {
+        tacoVencidoMais30++;
+      }
+  
+    }
+  
   });
 
   const kpiTipos = (t, total, b, cor) => `<div class="card"><div><div class="k">${t}</div><div class="v ${cor}">${total}</div></div><div class="bdg">${b}</div></div>`;
-  const kpi = (t, v, cor) => `<div class="card"><div><div class="k">${t}</div><div class="v ${cor}">${v}</div></div></div>`;
+  const kpi = (t, v, cor, detalhes = '') =>
+  `<div class="card">
+    <div>
+      <div class="k">${t}</div>
+      <div class="v ${cor}">${v}</div>
+    </div>
+    ${detalhes ? `<div class="bdg">${detalhes}</div>` : ''}
+  </div>`;
 
+  // Informações adicionais dos tacógrafos válidos
+  const detalhesTacoValido =
+    `<span>Até 7 dias: <b>${tacoVence7}</b></span>` +
+    `<span>8 a 30 dias: <b>${tacoVence30}</b></span>` +
+    `<span>Mais de 30 dias: <b>${tacoVenceMais30}</b></span>`;
+  
+  // Informações adicionais dos tacógrafos vencidos
+  const detalhesTacoVencido =
+    `<span>Até 7 dias: <b>${tacoVencido7}</b></span>` +
+    `<span>8 a 30 dias: <b>${tacoVencido30}</b></span>` +
+    `<span>Mais de 30 dias: <b>${tacoVencidoMais30}</b></span>`;
+  
   $('#kpis').innerHTML =
-    kpiTipos('Veículos Total', veiculosAtivosGeral.length, badges(contaTipos(veiculosAtivosGeral)), '') +
-    kpiTipos('Veículos Ativos', veiculosAtivosControle.length, badges(contaTipos(veiculosAtivosControle)), 'c-ok') +
-    kpi('Tacógrafos Válidos', tacoEmDia, 'c-ok') +
-    kpi('Tacógrafos Vencidos', tacoVencidos, tacoVencidos > 0 ? 'c-bad' : '') +
-    kpi('Multas pendentes', pend.length, 'c-info') +
-    kpi('FICI vencida ou a vencer em 7 dias', crit.length, crit.length ? 'c-bad' : '');
+      kpiTipos('Veículos Total', veiculosAtivosGeral.length, badges(contaTipos(veiculosAtivosGeral)), '') +
+      kpiTipos('Veículos Ativos', veiculosAtivosControle.length, badges(contaTipos(veiculosAtivosControle)), 'c-ok') +
+      kpi('Tacógrafos Válidos', tacoEmDia, 'c-ok', detalhesTacoValido) +
+      kpi('Tacógrafos Vencidos', tacoVencidos, tacoVencidos > 0 ? 'c-bad' : '', detalhesTacoVencido) +
+      kpi('Multas pendentes', pend.length, 'c-info') +
+      kpi('FICI vencida ou a vencer em 7 dias', crit.length, crit.length ? 'c-bad' : '');
 
   if ($('#kpi-tipos')) $('#kpi-tipos').innerHTML = '';
 
