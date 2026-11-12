@@ -736,7 +736,7 @@ const RELATORIOS = [
     ] },
   { id: 'frota-ano-ordem',
     nome: 'Frota por Ano Fab/Mod com Nº Ordem (Controle)',
-    desc: 'Planilha Excel (.xlsx) com uma aba para cada sistema de operação. Só ônibus e micro-ônibus ATIVOS do grupo CONTROLE. Em cada aba as linhas são os anos (fabricação / modelo) e as colunas são as unidades, divididas por marca. Dentro de cada marca ficam os números de ordem dos veículos, com a quantidade no topo e o total da unidade no ano ao lado. Os números de ordem de cada ano ficam agrupados, para abrir e fechar com o botão +/− do Excel.',
+    desc: 'Planilha Excel (.xlsx) com uma aba para cada sistema de operação. Só ônibus e micro-ônibus ATIVOS do grupo CONTROLE. Em cada aba as linhas são os anos (fabricação / modelo) e as colunas são as unidades, divididas por marca. Dentro de cada marca ficam os números de ordem dos veículos, com a quantidade no topo e o total da unidade no ano ao lado.',
     regra: v => ehControle(v) && ehOnibus(v), extras: [],
     gerar: (lista, arquivo) => gerarPlanilhaAnoOrdem(lista, arquivo), formato: 'xlsx' }
 ];
@@ -846,8 +846,7 @@ async function gerarPlanilhaAnoOrdem(lista, nomeArquivo) {
 
 /* Uma aba = um sistema de operação.
    Linhas: anos fab/mod. Colunas: unidades > marcas (cada marca ocupa 4 colunas de números) + TOTAL da unidade.
-   Os números de ordem de cada ano ficam em linhas agrupadas (botão +/− do Excel). */
-const INICIAR_RECOLHIDO = false;   // true = a planilha abre com todos os anos fechados (só a linha de quantidades)
+*/
 const COR = {                      // paleta da planilha (ARGB) — troque aqui para mudar as cores
   cab:      'FFD9E2F3',   // cabeçalhos (ANO, QTD, marcas, TOTAL) e coluna do ano
   unidade:  'FF1F3864',   // nome da unidade (letra branca)
@@ -969,14 +968,6 @@ function montarAbaAnoOrdem(ws, sistema, veics) {
     bloco(r, COL_ANO, r + h - 1, COL_ANO, a.rot, { h: 'left', v: 'top' });
     if (COL_QTD) bloco(r, COL_QTD, r + h - 1, COL_QTD, qtdAno, { v: 'top', cor: corQtd(qtdAno) });
 
-    /* agrupamento: as linhas de números de ordem ficam sob a linha de quantidades (botão +/−) */
-    for (let rr = r + 1; rr < r + h; rr++) {
-      const row = ws.getRow(rr);
-      row.outlineLevel = 1;
-      if (INICIAR_RECOLHIDO) row.hidden = true;
-    }
-    if (INICIAR_RECOLHIDO) ws.getRow(r).collapsed = true;
-
     totalGeral += qtdAno;
     r += h;
   });
@@ -990,9 +981,6 @@ function montarAbaAnoOrdem(ws, sistema, veics) {
     bloco(r, u.total, r, u.total, totUn[u.un] || 0, ROD);
   });
 
-  /* botão +/− acima do grupo (na linha de quantidades), como no seu modelo */
-  ws.properties.outlineProperties = { summaryBelow: false, summaryRight: false };
-  ws.properties.outlineLevelRow = 1;
   ws.views = [{ state: 'frozen', xSplit: multi ? 3 : 2, ySplit: 5, showGridLines: false }];
   ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
 }
