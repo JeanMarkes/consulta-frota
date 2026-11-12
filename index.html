@@ -188,6 +188,9 @@ table.rt{width:100%;border-collapse:collapse;font-size:.8rem}
         <div class="bar">
           <input id="f-veic" class="inp grow" placeholder="Buscar placa, chassi, renavam, empresa...">
           <select id="f-unidade" class="inp"><option value="">Todas as unidades</option></select>
+          <select id="f-grupo" class="inp"><option value="">Todos os grupos</option></select>
+          <select id="f-situacao" class="inp"><option value="">Todas as situações</option></select>
+          <select id="f-sistema" class="inp"><option value="">Todos os sistemas</option></select>
           <select id="f-tipo" class="inp"><option value="">Todos os tipos</option></select>
           <select id="f-empresa" class="inp"><option value="">Todas as empresas</option></select>
           <span id="cnt-veic" class="cnt"></span>
@@ -573,27 +576,33 @@ function renderDashboard() {
 
 /* ---------- veículos ---------- */
 function popularFiltrosVeiculos() {
-  const un = [...new Set(S.veic.map(v => v.unidade_nome || v.garagem).filter(Boolean))].sort();
-  const tp = [...new Set(S.veic.map(v => v.tipo_veiculo).filter(Boolean))].sort();
-  const em = [...new Set(S.veic.map(v => v.empresa || v.empresa_nome).filter(Boolean))].sort();
+  const unicos = fn => [...new Set(S.veic.map(fn).map(x => String(x ?? '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
   const opts = (ph, arr) => `<option value="">${ph}</option>` + arr.map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join('');
-  $('#f-unidade').innerHTML = opts('Todas as unidades', un);
-  $('#f-tipo').innerHTML = opts('Todos os tipos', tp);
-  $('#f-empresa').innerHTML = opts('Todas as empresas', em);
+  $('#f-unidade').innerHTML  = opts('Todas as unidades',  unicos(v => v.garagem_nome));
+  $('#f-grupo').innerHTML    = opts('Todos os grupos',     unicos(v => v.grupo_frota));
+  $('#f-situacao').innerHTML = opts('Todas as situações',  unicos(v => v.situacao));
+  $('#f-sistema').innerHTML  = opts('Todos os sistemas',   unicos(v => v.sistema_operacao));
+  $('#f-tipo').innerHTML     = opts('Todos os tipos',      unicos(v => v.tipo_veiculo));
+  $('#f-empresa').innerHTML  = opts('Todas as empresas',   unicos(v => v.empresa_nome || v.empresa));
 }
+
+const txt = x => String(x ?? '').trim();
 
 function renderVeiculos() {
   const q = $('#f-veic').value.trim().toLowerCase();
-  const unidadeSel = $('#f-unidade').value, tipoSel = $('#f-tipo').value, empresaSel = $('#f-empresa').value;
+  const unidadeSel = $('#f-unidade').value, grupoSel = $('#f-grupo').value, situacaoSel = $('#f-situacao').value,
+        sistemaSel = $('#f-sistema').value, tipoSel = $('#f-tipo').value, empresaSel = $('#f-empresa').value;
   const MAX = 300;
 
   const lista = S.veic.filter(v => {
-    const unidadeVal = v.unidade_nome || v.garagem || '';
-    const empresaVal = v.empresa || v.empresa_nome || '';
-    if (unidadeSel && unidadeVal !== unidadeSel) return false;
-    if (tipoSel && v.tipo_veiculo !== tipoSel) return false;
-    if (empresaSel && empresaVal !== empresaSel) return false;
-    if (q && ![v.placa, v.chassi, v.renavam, empresaVal, unidadeVal, v.marca, v.modelo, v.n_ordem, v.numero_ordem].join(' ').toLowerCase().includes(q)) return false;
+    const empresaVal = txt(v.empresa_nome || v.empresa);
+    if (unidadeSel  && txt(v.garagem_nome)     !== unidadeSel)  return false;
+    if (grupoSel    && txt(v.grupo_frota)      !== grupoSel)    return false;
+    if (situacaoSel && txt(v.situacao)         !== situacaoSel) return false;
+    if (sistemaSel  && txt(v.sistema_operacao) !== sistemaSel)  return false;
+    if (tipoSel     && txt(v.tipo_veiculo)     !== tipoSel)     return false;
+    if (empresaSel  && empresaVal              !== empresaSel)  return false;
+    if (q && ![v.placa, v.chassi, v.renavam, empresaVal, v.garagem_nome, v.marca_nome, v.modelo_nome, v.n_ordem, v.numero_ordem].join(' ').toLowerCase().includes(q)) return false;
     return true;
   });
 
@@ -603,13 +612,11 @@ function renderVeiculos() {
     ['Placa', esc(v.placa || '—')],
     ['Garagem', esc(v.garagem_nome || '—')],
     ['Tipo', esc(v.tipo_veiculo || '—')],
-    ['Empresa', esc(v.empresa || v.empresa_nome || '—')]
+    ['Empresa', esc(v.empresa_nome || v.empresa || '—')]
   ], `abrirDetalhesVeiculo(${v.id})`)).join('') || vazio(5, 'Nenhum veículo encontrado.');
 }
 $('#f-veic').addEventListener('input', renderVeiculos);
-$('#f-unidade').addEventListener('change', renderVeiculos);
-$('#f-tipo').addEventListener('change', renderVeiculos);
-$('#f-empresa').addEventListener('change', renderVeiculos);
+['f-unidade', 'f-grupo', 'f-situacao', 'f-sistema', 'f-tipo', 'f-empresa'].forEach(id => $('#' + id).addEventListener('change', renderVeiculos));
 
 function abrirDetalhesVeiculo(id) {
   const v = S.veic.find(x => x.id === id);
