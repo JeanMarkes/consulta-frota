@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <style>
 :root{--bg:#f3f5f9;--card:#fff;--bd:#e5e9f0;--tx:#0f172a;--mut:#64748b;--pri:#1d6ff2;--pri2:#1558c7;--priS:#e8f0fe;--ok:#059669;--bad:#dc2626;--warn:#d97706;--dark:#1e293b;--sh:0 1px 2px rgba(15,23,42,.05),0 4px 14px rgba(15,23,42,.05);--r:14px}
 *{box-sizing:border-box}
@@ -222,7 +223,7 @@ table.rt{width:100%;border-collapse:collapse;font-size:.8rem}
           <b style="font-size:1rem">Como funciona</b>
           <ol>
             <li><b>Escolha os filtros (opcional).</b> Empresa, Grupo da frota e Unidade / Garagem refinam o relatório. Deixando em branco, o relatório traz tudo o que a regra dele permite.</li>
-            <li><b>Clique no botão de download</b> do relatório desejado. O arquivo CSV é gerado na hora, com os dados atuais da base, e abre direto no Excel.</li>
+            <li><b>Clique no botão de download</b> do relatório desejado. O arquivo é gerado na hora, com os dados atuais da base: CSV na maioria dos relatórios e planilha Excel (.xlsx) no relatório por ano/modelo.</li>
             <li><b>Confira a prévia.</b> Abaixo da descrição de cada relatório aparece quantos veículos ele vai trazer com os filtros que estão selecionados.</li>
           </ol>
           <div class="regras">
@@ -661,6 +662,8 @@ const grupoDe    = v => String(v.grupo_frota || '').trim();
 const garagemDe  = v => v.garagem_nome || v.garagem || '';
 const ehAtivo    = v => String(v.situacao || '').toUpperCase() === 'ATIVO';
 const ehControle = v => grupoDe(v).toUpperCase() === 'CONTROLE';
+const normTxt = x => String(x ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase();
+const ehOnibus = v => normTxt(v.tipo_veiculo) === 'ONIBUS';   // não inclui MICRO-ONIBUS
 const temControleTaco = v => v.controle_tacografo === true || String(v.controle_tacografo).toLowerCase() === 'true';
 const dataIso = str => {
   const p = String(str || '').slice(0, 10).split('-');
@@ -729,7 +732,12 @@ const RELATORIOS = [
       ['taco_validade',    v => fmtData(String(v.taco_validade || '').slice(0, 10))],
       ['dias_vencido',     v => diasTacoVencido(v)],
       ['taco_certificado', v => v.taco_certificado]
-    ] }
+    ] },
+  { id: 'frota-ano-ordem',
+    nome: 'Frota por Ano Fab/Mod com Nº Ordem (Controle)',
+    desc: 'Planilha Excel (.xlsx) com uma aba para cada sistema de operação. Só ônibus ATIVOS do grupo CONTROLE. Em cada aba as linhas são os anos (fabricação / modelo) e as colunas são as unidades, divididas por marca. Dentro de cada marca ficam os números de ordem dos veículos, com a quantidade no topo e o total da unidade no ano ao lado.',
+    regra: v => ehControle(v) && ehOnibus(v), extras: [],
+    gerar: (lista, arquivo) => gerarPlanilhaAnoOrdem(lista, arquivo), formato: 'xlsx' }
 ];
 
 /* Consulta única: ATIVO (regra 1) + regra do relatório (regra 2) + filtros do topo (regra 3) */
@@ -758,7 +766,7 @@ function renderRelatorios() {
   $('#tb-rel').innerHTML = RELATORIOS.map(r => {
     const n = veiculosDoRelatorio(r).length;
     return tr([
-      ['', `<button class="btn-dl" title="Baixar CSV" aria-label="Baixar ${esc(r.nome)}" onclick="baixarRelatorio('${r.id}')">${ICONE_DL}</button>`, 'dl'],
+      ['', `<button class="btn-dl" title="Baixar ${r.formato === 'xlsx' ? 'Excel (.xlsx)' : 'CSV'}" aria-label="Baixar ${esc(r.nome)}" onclick="baixarRelatorio('${r.id}')">${ICONE_DL}</button>`, 'dl'],
       ['Relatório', esc(r.nome), 'b'],
       ['Descrição', `${esc(r.desc)}<small>Prévia com os filtros atuais: <b>${n}</b> veículo${n === 1 ? '' : 's'}</small>`, 'desc']
     ]);
@@ -770,14 +778,24 @@ $('#r-limpar').addEventListener('click', () => {
   renderRelatorios();
 });
 
-function baixarRelatorio(id) {
+async function baixarRelatorio(id) {
   const rel = RELATORIOS.find(r => r.id === id);
   if (!rel) return;
   const lista = veiculosDoRelatorio(rel);
   if (!lista.length) return toast('Nenhum veículo encontrado com a regra do relatório e os filtros selecionados.', true);
+  const plural = lista.length === 1 ? '' : 's';
+  if (rel.gerar) {                       // relatórios com formato próprio (Excel)
+    try {
+      await rel.gerar(lista, `${rel.id}_${hojeArq()}.xlsx`);
+      toast(`${rel.nome}: ${lista.length} veículo${plural} no relatório.`);
+    } catch (e) {
+      toast('Erro ao gerar o relatório: ' + e.message, true);
+    }
+    return;
+  }
   const cols = COLS_BASE.concat(rel.extras);
   exportarCSV(`${rel.id}_${hojeArq()}.csv`, cols.map(c => c[0]), lista.map(v => cols.map(c => c[1](v))));
-  toast(`${rel.nome}: ${lista.length} veículo${lista.length === 1 ? '' : 's'} exportado${lista.length === 1 ? '' : 's'}.`);
+  toast(`${rel.nome}: ${lista.length} veículo${plural} exportado${plural}.`);
 }
 
 const hojeArq = () => new Date().toLocaleDateString('sv-SE');
@@ -792,6 +810,163 @@ function exportarCSV(nomeArquivo, cabecalho, linhas) {
   link.href = url; link.download = nomeArquivo;
   document.body.appendChild(link); link.click(); document.body.removeChild(link);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* ---------- Planilha Excel: Frota por Ano Fab/Mod com Nº Ordem ---------- */
+/* Unidades listadas aqui saem primeiro, nessa ordem; as demais seguem em ordem alfabética.
+   Os nomes precisam ser iguais ao garagem_nome. Ajuste à vontade. */
+const ORDEM_UNIDADES = ['ANA LUCIA', 'JUSTINOPOLIS', 'MARIA GORETTI - URBANO', 'VENEZA', 'JUSTINOPOLIS - URBANO', 'SARZEDO'];
+const cmpTxt = (a, b) => String(a).localeCompare(String(b), 'pt-BR', { numeric: true });
+
+function baixarBlob(blob, nome) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url; link.download = nome;
+  document.body.appendChild(link); link.click(); document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function gerarPlanilhaAnoOrdem(lista, nomeArquivo) {
+  if (!window.ExcelJS) throw new Error('a biblioteca do Excel não carregou. Verifique a conexão e recarregue a página.');
+  const wb = new ExcelJS.Workbook();
+  const porSistema = {};
+  lista.forEach(v => { const k = txt(v.sistema_operacao) || 'SEM SISTEMA'; (porSistema[k] = porSistema[k] || []).push(v); });
+  const usados = new Set();
+  Object.keys(porSistema).sort(cmpTxt).forEach(sis => {
+    const base = (sis.replace(/[\\\/*?:\[\]]/g, '-').slice(0, 28) || 'Planilha');
+    let nome = base, i = 2;
+    while (usados.has(nome.toLowerCase())) nome = base + '-' + (i++);
+    usados.add(nome.toLowerCase());
+    montarAbaAnoOrdem(wb.addWorksheet(nome), sis, porSistema[sis]);
+  });
+  const buf = await wb.xlsx.writeBuffer();
+  baixarBlob(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), nomeArquivo);
+}
+
+/* Uma aba = um sistema de operação.
+   Linhas: anos fab/mod. Colunas: unidades > marcas (cada marca ocupa 4 colunas de números) + TOTAL da unidade. */
+function montarAbaAnoOrdem(ws, sistema, veics) {
+  const POR_LINHA = 4;
+  const CINZA = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9D9D9' } };
+  const F = { name: 'Arial', size: 9 }, FB = { name: 'Arial', size: 9, bold: true };
+  const L = { style: 'thin', color: { argb: 'FF000000' } };
+  const BORDA_TODA = { top: L, bottom: L, left: L, right: L };
+
+  /* ---- agrupa: ano > unidade > marca > [nº de ordem] ---- */
+  const anos = new Map(), unidades = new Map();
+  veics.forEach(v => {
+    const un = txt(garagemDe(v)) || 'SEM UNIDADE';
+    const mk = txt(v.marca_nome).toUpperCase() || 'SEM MARCA';
+    const f = Number(v.ano_fabricacao) || 0, m = Number(v.ano_modelo) || 0;
+    const rot = `${f || '—'} / ${m || '—'}`;
+    if (!anos.has(rot)) anos.set(rot, { rot, ord: (f || 9999) * 10000 + (m || 9999), dados: {} });
+    const d = anos.get(rot).dados;
+    if (!d[un]) d[un] = {};
+    if (!d[un][mk]) d[un][mk] = [];
+    d[un][mk].push(String(v.n_ordem ?? v.numero_ordem ?? v.num_ordem ?? '').trim());
+    if (!unidades.has(un)) unidades.set(un, new Map());
+    unidades.get(un).set(mk, (unidades.get(un).get(mk) || 0) + 1);
+  });
+  const posU = u => { const i = ORDEM_UNIDADES.indexOf(u); return i < 0 ? 999 : i; };
+  const listaUn = [...unidades.keys()].sort((a, b) => posU(a) - posU(b) || cmpTxt(a, b));
+  const marcasDe = u => [...unidades.get(u).entries()].sort((a, b) => b[1] - a[1] || cmpTxt(a[0], b[0])).map(e => e[0]);
+  const listaAnos = [...anos.values()].sort((a, b) => a.ord - b.ord);
+  const multi = listaUn.length > 1;
+
+  /* ---- posição das colunas ---- */
+  const COL_ANO = 2, COL_QTD = multi ? 3 : null;
+  let cur = multi ? 4 : 3;
+  const layout = listaUn.map((un, idx) => {
+    const marcas = marcasDe(un).map(mk => { const c = cur; cur += POR_LINHA; return { mk, c }; });
+    const total = cur++;
+    const info = { un, marcas, total, c1: marcas[0].c };
+    if (idx < listaUn.length - 1) { ws.getColumn(cur).width = 2; cur++; }   // coluna de respiro entre unidades
+    return info;
+  });
+  ws.getColumn(1).width = 2;
+  ws.getColumn(COL_ANO).width = 12;
+  if (COL_QTD) ws.getColumn(COL_QTD).width = 6;
+  layout.forEach(u => { u.marcas.forEach(m => { for (let k = 0; k < POR_LINHA; k++) ws.getColumn(m.c + k).width = 6.5; }); ws.getColumn(u.total).width = 8; });
+
+  /* ---- helper: célula (mesclada) cinza com borda ---- */
+  const bloco = (r1, c1, r2, c2, valor, o = {}) => {
+    const cell = ws.getCell(r1, c1);
+    cell.value = valor;
+    cell.font = o.bold === false ? F : FB;
+    cell.alignment = { horizontal: o.h || 'center', vertical: o.v || 'middle' };
+    cell.fill = CINZA;
+    cell.border = BORDA_TODA;
+    if (r1 !== r2 || c1 !== c2) ws.mergeCells(r1, c1, r2, c2);   // as células mescladas herdam o estilo da principal
+  };
+
+  /* ---- título e cabeçalho ---- */
+  const t = ws.getCell(2, COL_ANO);
+  t.value = `${sistema} — Por Ano Fab/Mod com Nº Ordem`;
+  t.font = { name: 'Arial', size: 11, bold: true };
+  const sub = ws.getCell(3, COL_ANO);
+  sub.value = `Ônibus ATIVOS do grupo CONTROLE · gerado em ${new Date().toLocaleDateString('pt-BR')}`;
+  sub.font = { name: 'Arial', size: 8, italic: true, color: { argb: 'FF64748B' } };
+
+  bloco(4, COL_ANO, 4, COL_ANO, 'ANO');
+  bloco(5, COL_ANO, 5, COL_ANO, 'FAB / MOD');
+  if (COL_QTD) { bloco(4, COL_QTD, 4, COL_QTD, ''); bloco(5, COL_QTD, 5, COL_QTD, 'QTD'); }
+  layout.forEach(u => {
+    bloco(4, u.c1, 4, u.total, u.un);
+    u.marcas.forEach(m => bloco(5, m.c, 5, m.c + POR_LINHA - 1, m.mk));
+    bloco(5, u.total, 5, u.total, 'TOTAL');
+  });
+
+  /* ---- linhas por ano ---- */
+  let r = 6;
+  const totMarca = {}, totUn = {};
+  let totalGeral = 0;
+  listaAnos.forEach(a => {
+    let linhas = 1, qtdAno = 0;
+    layout.forEach(u => u.marcas.forEach(m => {
+      const n = (a.dados[u.un] && a.dados[u.un][m.mk] || []).length;
+      linhas = Math.max(linhas, Math.ceil(n / POR_LINHA));
+    }));
+    const h = 1 + linhas;                                  // 1 linha de quantidade + linhas de números
+    layout.forEach(u => {
+      let totalU = 0;
+      u.marcas.forEach(m => {
+        const arr = ((a.dados[u.un] && a.dados[u.un][m.mk]) || []).slice().sort(cmpTxt);
+        totalU += arr.length;
+        totMarca[u.un + '|' + m.mk] = (totMarca[u.un + '|' + m.mk] || 0) + arr.length;
+        bloco(r, m.c, r, m.c + POR_LINHA - 1, arr.length);
+        for (let rr = r + 1; rr < r + h; rr++) for (let k = 0; k < POR_LINHA; k++) {
+          const idx = (rr - r - 1) * POR_LINHA + k;
+          const cell = ws.getCell(rr, m.c + k);
+          if (idx < arr.length) cell.value = arr[idx];     // texto: preserva zeros à esquerda (ex.: 01300)
+          cell.font = F;
+          cell.alignment = { horizontal: 'left', vertical: 'middle' };
+          const b = {};
+          if (k === 0) b.left = L;
+          if (k === POR_LINHA - 1) b.right = L;
+          if (rr === r + h - 1) b.bottom = L;
+          cell.border = b;
+        }
+      });
+      bloco(r, u.total, r + h - 1, u.total, totalU);
+      totUn[u.un] = (totUn[u.un] || 0) + totalU;
+      qtdAno += totalU;
+    });
+    bloco(r, COL_ANO, r + h - 1, COL_ANO, a.rot, { h: 'left', v: 'top' });
+    if (COL_QTD) bloco(r, COL_QTD, r + h - 1, COL_QTD, qtdAno, { v: 'top' });
+    totalGeral += qtdAno;
+    r += h;
+  });
+
+  /* ---- linha de totais ---- */
+  bloco(r, COL_ANO, r, COL_ANO, 'TOTAL');
+  if (COL_QTD) bloco(r, COL_QTD, r, COL_QTD, totalGeral);
+  layout.forEach(u => {
+    u.marcas.forEach(m => bloco(r, m.c, r, m.c + POR_LINHA - 1, totMarca[u.un + '|' + m.mk] || 0));
+    bloco(r, u.total, r, u.total, totUn[u.un] || 0);
+  });
+
+  ws.views = [{ state: 'frozen', xSplit: multi ? 3 : 2, ySplit: 5, showGridLines: false }];
+  ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
 }
 </script>
 </body>
