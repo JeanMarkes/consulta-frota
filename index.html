@@ -736,7 +736,7 @@ const RELATORIOS = [
     ] },
   { id: 'frota-ano-ordem',
     nome: 'Frota por Ano Fab/Mod com Nº Ordem (Controle)',
-    desc: 'Planilha Excel (.xlsx) com uma aba para cada sistema de operação. Só ônibus e micro-ônibus ATIVOS do grupo CONTROLE. Em cada aba as linhas são os anos (fabricação / modelo) e as colunas são as unidades, divididas por marca. Dentro de cada marca ficam os números de ordem dos veículos, com a quantidade no topo e o total da unidade no ano ao lado.',
+    desc: 'Planilha Excel (.xlsx) com uma aba para cada sistema de operação. Só ônibus e micro-ônibus ATIVOS do grupo CONTROLE. Em cada aba as linhas são os anos (fabricação / modelo) e as colunas são as unidades, divididas por marca. Dentro de cada marca ficam os números de ordem dos veículos, com a quantidade no topo e o total da unidade no ano ao lado. Os números de ordem de cada ano ficam agrupados, para abrir e fechar com o botão +/− do Excel.',
     regra: v => ehControle(v) && ehOnibus(v), extras: [],
     gerar: (lista, arquivo) => gerarPlanilhaAnoOrdem(lista, arquivo), formato: 'xlsx' }
 ];
@@ -846,7 +846,9 @@ async function gerarPlanilhaAnoOrdem(lista, nomeArquivo) {
 
 /* Uma aba = um sistema de operação.
    Linhas: anos fab/mod. Colunas: unidades > marcas (cada marca ocupa 4 colunas de números) + TOTAL da unidade.
-*/
+   Os números de ordem de cada ano ficam em linhas agrupadas (botão +/− nativo do Excel). */
+/* Se o Excel acusar erro ao abrir o arquivo, mude para false: a planilha sai sem o agrupamento. */
+const AGRUPAR_ANOS = true;
 const COR = {                      // paleta da planilha (ARGB) — troque aqui para mudar as cores
   cab:      'FFD9E2F3',   // cabeçalhos (ANO, QTD, marcas, TOTAL) e coluna do ano
   unidade:  'FF1F3864',   // nome da unidade (letra branca)
@@ -968,6 +970,9 @@ function montarAbaAnoOrdem(ws, sistema, veics) {
     bloco(r, COL_ANO, r + h - 1, COL_ANO, a.rot, { h: 'left', v: 'top' });
     if (COL_QTD) bloco(r, COL_QTD, r + h - 1, COL_QTD, qtdAno, { v: 'top', cor: corQtd(qtdAno) });
 
+    if (AGRUPAR_ANOS) {                       // linhas de números = nível 1, sob a linha de quantidades
+      for (let rr = r + 1; rr < r + h; rr++) ws.getRow(rr).outlineLevel = 1;
+    }
     totalGeral += qtdAno;
     r += h;
   });
@@ -982,7 +987,15 @@ function montarAbaAnoOrdem(ws, sistema, veics) {
   });
 
   ws.views = [{ state: 'frozen', xSplit: multi ? 3 : 2, ySplit: 5, showGridLines: false }];
-  ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
+  if (AGRUPAR_ANOS) {
+    /* botão +/− na linha de quantidades (acima do grupo). Nesta versão a impressão
+       "ajustar em 1 página" não é gravada, para não misturar duas configurações da aba. */
+    ws.properties.outlineProperties = { summaryBelow: false, summaryRight: false };
+    ws.properties.outlineLevelRow = 1;
+    ws.pageSetup = { orientation: 'landscape' };
+  } else {
+    ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
+  }
 }
 </script>
 </body>
